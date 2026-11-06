@@ -99,7 +99,7 @@ valid_until      = earliest valid_until of all rules used
 ```
 Returns line items + total + `valid_until` + note. **If any rule is missing → returns "price on request" (UI shows enquiry CTA), never a guessed number.** Rounded to the rupee, integer maths (paise) to avoid float drift.
 
-Worked example for seed (all numbers ASSUMPTIONS, admin-editable): Model H ZX AT petrol, Lucknow, ex-showroom ₹12,45,000 → road tax 10% ₹1,24,500 · registration ₹600 · insurance 3.1% ₹38,595 · TCS ₹12,450 · essentials pack ₹15,000 → **₹14,36,145**.
+Worked example for seed (all numbers ASSUMPTIONS, admin-editable): Model H ZX AT petrol, Lucknow, ex-showroom ₹12,45,000 → road tax 10% ₹1,24,500 · registration & handling ₹6,500 · insurance 3.1% ₹38,595 · TCS 1% ₹12,450 · essentials pack ₹15,000 → **₹14,42,045** (locked in `test_pricing.py`).
 
 ### 4.2 `assign_lead(lead, consultants, open_counts, last_assigned)`
 1. Active consultants at `lead.showroom_id`

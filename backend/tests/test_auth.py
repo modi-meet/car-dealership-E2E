@@ -65,3 +65,8 @@ def test_logout_clears_session(client):
     login(client, "ankit")
     client.post("/api/auth/logout")
     assert client.get("/api/auth/me").status_code == 401
+
+
+def test_api_404_stays_json(client):
+    r = client.get("/api/does-not-exist")
+    assert r.status_code == 404 and r.headers["content-type"].startswith("application/json")
