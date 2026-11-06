@@ -3,7 +3,10 @@ import Layout from './components/Layout'
 import { NotFound } from './components/States'
 import { RequireRole } from './lib/auth'
 import Cars from './pages/Cars'
+import Desk from './pages/Desk'
+import DeskImport from './pages/DeskImport'
 import Home from './pages/Home'
+import LeadPage from './pages/LeadPage'
 import Login from './pages/Login'
 import ModelPage from './pages/ModelPage'
 import Privacy from './pages/Privacy'
@@ -28,14 +31,11 @@ const router = createBrowserRouter([
       { path: '/used/:stockId', element: <UsedDetail /> },
       { path: '/test-drive', element: <TestDrive /> },
       { path: '/privacy', element: <Privacy /> },
-      {
-        path: '/desk',
-        element: (
-          <RequireRole roles={['consultant', 'admin']}>
-            <Soon name="Lead desk" />
-          </RequireRole>
-        ),
-      },
+      ...[
+        { path: '/desk', element: <Desk /> },
+        { path: '/desk/leads/:id', element: <LeadPage /> },
+        { path: '/desk/import', element: <DeskImport /> },
+      ].map((r) => ({ ...r, element: <RequireRole roles={['consultant', 'admin']}>{r.element}</RequireRole> })),
       {
         path: '/admin',
         element: (

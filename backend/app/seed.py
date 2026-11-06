@@ -308,14 +308,22 @@ def run() -> None:
             name = BUYER_NAMES[i % len(BUYER_NAMES)]
             sr = showrooms[i % 3]
             cm = rnd.choice(model_list)
-            mins_ago = [2, 4, 7, 12, 26, 55][i] if i < 6 else rnd.randint(90, 60 * 24 * 21)
+            if i < 6:
+                # still waiting, a spread of fresh and overdue
+                mins_ago, status = [2, 4, 7, 12, 26, 55][i], LeadStatus.new
+            elif i < 14:
+                # earlier today and already called, so today's sla number is real
+                mins_ago = rnd.randint(40, 300)
+                status = rnd.choice([LeadStatus.contacted, LeadStatus.test_drive, LeadStatus.negotiation])
+            else:
+                mins_ago = rnd.randint(60 * 6, 60 * 24 * 21)
+                status = rnd.choice([x for x in LeadStatus if x != LeadStatus.new])
             created = t - timedelta(minutes=mins_ago)
-            status = LeadStatus.new if i < 6 else rnd.choice(list(LeadStatus))
             ltype = rnd.choice([LeadType.enquiry, LeadType.enquiry, LeadType.test_drive, LeadType.trade_in])
             msg = rnd.choice(MESSAGES)
             owner = next((c for c in consultants if c.showroom_id == sr.id and cm.id in c.model_ids),
                          next(c for c in consultants if c.showroom_id == sr.id))
-            responded = None if status == LeadStatus.new else created + timedelta(minutes=rnd.choice([2, 3, 4, 6, 18, 75]))
+            responded = None if status == LeadStatus.new else created + timedelta(minutes=rnd.choice([1, 2, 2, 3, 4, 4, 7, 18]))
             lead = Lead(
                 name=name, phone=f"9{rnd.randint(100000000, 999999999)}",
                 email=f"{name.split()[0].lower()}.{i}@example.com",

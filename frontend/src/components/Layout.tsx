@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, ScrollRestoration, useNavigate } from 'react-router'
 import { setLang } from '../i18n'
 import { useMe, useSignOut } from '../lib/auth'
 
@@ -110,6 +110,8 @@ export default function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
+      {/* new page starts at the top, back button returns to where you were */}
+      <ScrollRestoration getKey={(loc) => loc.pathname} />
 
       <footer className="mt-24 border-t border-line">
         <div className="wrap flex flex-col gap-6 py-10 text-[14px] text-ink-2 sm:flex-row sm:items-start sm:justify-between">
