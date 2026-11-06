@@ -5,8 +5,9 @@ from pydantic import BaseModel
 from sqlmodel import Session, col, select
 
 from app.db import get_session
+from app.logic.masking import mask_reg
 from app.logic.pricing import Breakup, PriceUnavailable, on_road_price
-from app.models import AccessoryPack, CarModel, City, InsuranceRule, Showroom, TaxRule, Variant
+from app.models import AccessoryPack, CarModel, City, Fuel, InsuranceRule, Showroom, TaxRule, UsedCar, UsedStatus, Variant
 
 router = APIRouter(prefix="/api", tags=["public"])
 
@@ -156,3 +157,79 @@ def list_cities(session: Session = Depends(get_session)):
 @router.get("/showrooms")
 def list_showrooms(session: Session = Depends(get_session)):
     return list(session.exec(select(Showroom).order_by(Showroom.id)))
+
+
+# certified used cars. reg number is never in these schemas, only the masked one
+
+
+class UsedCard(BaseModel):
+    stock_id: str
+    model_name: str
+    variant: str
+    body_type: str
+    fuel: str
+    transmission: str
+    year: int
+    km: int
+    owners: int
+    price: int
+    colour: str
+    status: str
+    photo: str
+    inspection_score: int
+
+
+class UsedDetail(UsedCard):
+    reg_masked: str
+    city: str
+    photos: list[str]
+    inspection: dict
+    showroom: str | None
+
+
+def used_card(u: UsedCar) -> dict:
+    return dict(stock_id=u.stock_id, model_name=u.model_name, variant=u.variant, body_type=u.body_type, fuel=u.fuel,
+                transmission=u.transmission, year=u.year, km=u.km, owners=u.owners, price=u.price, colour=u.colour,
+                status=u.status, photo=u.photos[0] if u.photos else "", inspection_score=u.inspection.get("score", 0))
+
+
+@router.get("/used", response_model=list[UsedCard])
+def list_used(
+    fuel: Fuel | None = None,
+    body: str | None = Query(None, max_length=40),
+    transmission: str | None = Query(None, pattern="^(manual|automatic)$"),
+    max_price: int | None = Query(None, ge=0),
+    min_year: int | None = Query(None, ge=1990, le=2100),
+    max_km: int | None = Query(None, ge=0),
+    sort: str = Query("newest", pattern="^(newest|price_asc|price_desc|km_asc)$"),
+    session: Session = Depends(get_session),
+):
+    # sold cars drop off the site, booked ones stay with a badge
+    q = select(UsedCar).where(UsedCar.status != UsedStatus.sold)
+    if fuel:
+        q = q.where(UsedCar.fuel == fuel)
+    if body:
+        q = q.where(UsedCar.body_type == body)
+    if transmission == "manual":
+        q = q.where(UsedCar.transmission == "Manual")
+    elif transmission == "automatic":
+        q = q.where(UsedCar.transmission != "Manual")
+    if max_price is not None:
+        q = q.where(UsedCar.price <= max_price)
+    if min_year is not None:
+        q = q.where(UsedCar.year >= min_year)
+    if max_km is not None:
+        q = q.where(UsedCar.km <= max_km)
+    order = {"newest": col(UsedCar.created_at).desc(), "price_asc": col(UsedCar.price),
+             "price_desc": col(UsedCar.price).desc(), "km_asc": col(UsedCar.km)}[sort]
+    return [used_card(u) for u in session.exec(q.order_by(order))]
+
+
+@router.get("/used/{stock_id}", response_model=UsedDetail)
+def get_used(stock_id: str, session: Session = Depends(get_session)):
+    u = session.exec(select(UsedCar).where(UsedCar.stock_id == stock_id)).first()
+    if not u or u.status == UsedStatus.sold:
+        raise HTTPException(404, "this car isn't listed any more")
+    s = session.get(Showroom, u.showroom_id) if u.showroom_id else None
+    return {**used_card(u), "reg_masked": mask_reg(u.reg_number), "city": u.city, "photos": u.photos,
+            "inspection": u.inspection, "showroom": s.name if s else None}

@@ -286,12 +286,16 @@ def run() -> None:
             consultants.append(u)
         s.flush()
 
-        # two demo cars per showroom
-        demo_picks = ["model-h", "model-c", "model-s", "model-t", "model-a", "model-e"]
+        # three demo cars per showroom, popular models at more than one
+        demo_plan = [(0, "model-h"), (0, "model-e"), (0, "model-c"),
+                     (1, "model-c"), (1, "model-s"), (1, "model-h"),
+                     (2, "model-t"), (2, "model-a"), (2, "model-s")]
         demos = []
-        for i, slug in enumerate(demo_picks):
-            v = next(v for v in variants if v.model_id == models[slug].id)
-            d = DemoCar(showroom_id=showrooms[i // 2].id, variant_id=v.id, colour="Polar White")
+        for si, slug in demo_plan:
+            vs = [v for v in variants if v.model_id == models[slug].id]
+            # demo the automatic where there is one, that's what people ask to drive
+            v = next((v for v in vs if "Manual" not in v.transmission), vs[0])
+            d = DemoCar(showroom_id=showrooms[si].id, variant_id=v.id, colour=v.colours[0]["name"])
             s.add(d)
             demos.append(d)
         s.flush()
