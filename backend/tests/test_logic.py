@@ -71,9 +71,15 @@ def test_same_showroom_wins():
     assert pick_consultant([c(1, 1), c(2, 2)], showroom_id=2, model_id=None).id == 2
 
 
-def test_model_specialist_preferred():
-    got = pick_consultant([c(1, 1, open_leads=0), c(2, 1, models=[7], open_leads=5)], showroom_id=1, model_id=7)
+def test_model_specialist_preferred_when_load_is_close():
+    got = pick_consultant([c(1, 1, open_leads=0), c(2, 1, models=[7], open_leads=1)], showroom_id=1, model_id=7)
     assert got.id == 2
+
+
+def test_busy_specialist_loses_to_free_generalist():
+    # specialist is 2+ leads busier than the generalist, spread the load instead
+    got = pick_consultant([c(1, 1, open_leads=0), c(2, 1, models=[7], open_leads=5)], showroom_id=1, model_id=7)
+    assert got.id == 1
 
 
 def test_generalist_beats_wrong_specialist():
@@ -99,3 +105,8 @@ def test_unknown_showroom_falls_back_to_anyone():
 def test_nobody_to_assign():
     assert pick_consultant([], 1, 1) is None
 
+
+
+def test_tie_between_never_assigned_and_db_time_doesnt_crash():
+    aware = datetime(2026, 11, 1, 10, 0, tzinfo=UTC)
+    assert pick_consultant([c(1, 1, last=aware), c(2, 1)], 1, None).id == 2

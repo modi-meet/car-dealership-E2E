@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 from sqlmodel import Session, SQLModel
 
 from app.auth import hash_password
+from app.logic.assignment import Candidate, pick_consultant
 from app.db import engine
 from app.models import (
     AccessoryPack,
@@ -304,6 +305,7 @@ def run() -> None:
         t = now()
         model_list = list(models.values())
         taken: set = set()
+        load = {c.id: 0 for c in consultants}
         for i in range(40):
             name = BUYER_NAMES[i % len(BUYER_NAMES)]
             sr = showrooms[i % 3]
@@ -321,8 +323,10 @@ def run() -> None:
             created = t - timedelta(minutes=mins_ago)
             ltype = rnd.choice([LeadType.enquiry, LeadType.enquiry, LeadType.test_drive, LeadType.trade_in])
             msg = rnd.choice(MESSAGES)
-            owner = next((c for c in consultants if c.showroom_id == sr.id and cm.id in c.model_ids),
-                         next(c for c in consultants if c.showroom_id == sr.id))
+            # same rule as live leads, with running counts so the seed spreads like real life
+            pick = pick_consultant([Candidate(id=c.id, name=c.name, showroom_id=c.showroom_id, model_ids=c.model_ids,
+                                              open_leads=load[c.id], last_assigned_at=None) for c in consultants], sr.id, cm.id)
+            owner = next(c for c in consultants if c.id == pick.id)
             responded = None if status == LeadStatus.new else created + timedelta(minutes=rnd.choice([1, 2, 2, 3, 4, 4, 7, 18]))
             lead = Lead(
                 name=name, phone=f"9{rnd.randint(100000000, 999999999)}",
@@ -334,6 +338,8 @@ def run() -> None:
             )
             s.add(lead)
             s.flush()
+            if status not in (LeadStatus.won, LeadStatus.lost):
+                load[owner.id] += 1
             s.add(LeadEvent(lead_id=lead.id, kind="created", body=f"{lead.source} enquiry for {cm.name}", at=created))
             s.add(LeadEvent(lead_id=lead.id, kind="assigned", body=f"auto-assigned to {owner.name}", at=created))
             s.add(LeadEvent(lead_id=lead.id, kind="message_sent",
