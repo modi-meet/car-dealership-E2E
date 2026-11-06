@@ -11,10 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from sqlmodel import Session
 
-from slowapi.errors import RateLimitExceeded
-
 from app import seo
-from app.limits import limiter, too_many
 from app.db import engine, init_db
 from app.routers import admin, auth, booking, desk, public
 from app.settings import settings
@@ -27,8 +24,6 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Company A dealership", lifespan=lifespan)
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, too_many)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 

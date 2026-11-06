@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     frontend_dist: str = "../frontend/dist"
     # used for canonical links and the sitemap
     public_url: str = "http://localhost:8000"
+    # vercel sets VERCEL=1 on its own boxes
+    vercel: bool = False
 
 
 settings = Settings()

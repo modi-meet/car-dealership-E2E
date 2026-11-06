@@ -54,7 +54,7 @@
 
 <div class="meta">
   <div><b>GitHub</b><a href="https://github.com/modi-meet/car-dealership-E2E">https://github.com/modi-meet/car-dealership-E2E</a></div>
-  <div><b>Live app</b><span><a href="https://companya-dealership.onrender.com">https://companya-dealership.onrender.com</a><br><span class="small">Render free tier: the first request after it has been idle takes about 30 s.</span></span></div>
+  <div><b>Live app</b><span><a href="https://companya-dealership.vercel.app">https://companya-dealership.vercel.app</a><br><span class="small">Vercel (Singapore) with Neon Postgres. The first request after an idle spell can take a few seconds.</span></span></div>
   <div><b>Demo logins</b><span>admin@companya.demo · ankit@companya.demo (consultant) · buyer@companya.demo. The password is <code>demo1234</code>; the full list is in <code>deployment.md</code>.</span></div>
   <div><b>Stack</b><span>FastAPI · SQLModel · Postgres (Neon) · React 19 · Vite · Tailwind v4 · Claude API</span></div>
   <div><b>Author</b><span>modi-meet · November 2026</span></div>
@@ -85,7 +85,7 @@
     <text x="76" y="56" text-anchor="middle" font-weight="600">Browser</text>
     <text x="76" y="74" text-anchor="middle" fill="#4a5058" font-size="10">React SPA, buyers + staff</text>
     <rect x="200" y="10" width="290" height="180" rx="12" fill="#fff" stroke="#1a56db" stroke-width="1.5"/>
-    <text x="345" y="32" text-anchor="middle" font-weight="600">One FastAPI service (Docker on Render)</text>
+    <text x="345" y="32" text-anchor="middle" font-weight="600">One FastAPI app (Vercel function)</text>
     <rect x="216" y="44" width="124" height="40" rx="8" fill="#f3f6fd" stroke="#c9d6f7"/>
     <text x="278" y="62" text-anchor="middle" font-size="10">routers/ (thin HTTP)</text>
     <text x="278" y="76" text-anchor="middle" font-size="9" fill="#4a5058">public · booking · desk · admin</text>
@@ -248,7 +248,7 @@ valid until = the earliest valid_until of the rules used</pre>
           <li>Public forms: 5 a minute and 30 an hour.</li>
           <li>Login: 10 a minute.</li>
         </ul>
-        The real client IP is read through the proxy headers.
+        Counts are kept in Postgres, so every serverless instance shares them. The client IP comes from Vercel's own <code>x-real-ip</code> header, which a visitor can't forge.
       </li>
     </ul>
   </li>
@@ -321,7 +321,7 @@ valid until = the earliest valid_until of the rules used</pre>
 </div>
 
 <h2>9. Tests</h2>
-<p>There are <b>193 backend tests</b> (pytest) and <b>16 frontend tests</b> (vitest). They concentrate on the logic that costs money if it's wrong:</p>
+<p>There are <b>194 backend tests</b> (pytest) and <b>16 frontend tests</b> (vitest). They concentrate on the logic that costs money if it's wrong:</p>
 <table>
   <tr><th>Area</th><th>What is pinned down</th></tr>
   <tr><td>Pricing</td><td>Breakup sums to the total; band edges at exactly ₹10L; the TCS threshold; a missing or expired rule means "on request"; validity is the earliest date; EV exempt; the worked example to the rupee</td></tr>

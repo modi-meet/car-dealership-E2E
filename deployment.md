@@ -1,8 +1,8 @@
 # Deployment
 
-Company A's site is one FastAPI service that also serves the built React app. Because both come from the same origin, there's no CORS setup and no second deploy.
+Company A's site is one FastAPI app that also serves the built React app. Because both come from the same origin, there's no CORS setup and no second deploy.
 
-- **Live:** <https://companya-dealership.onrender.com> (the Render free tier sleeps when idle, so the first request can take about 30 s)
+- **Live:** <https://companya-dealership.vercel.app> (Vercel, Singapore region, with Neon Postgres)
 - **Code:** <https://github.com/modi-meet/car-dealership-E2E>
 
 ## Demo logins
@@ -42,13 +42,13 @@ To try it the way production runs it, serve the built app from FastAPI. Build it
 ### Tests
 
 ```bash
-cd backend && uv run pytest -q          # 193 tests: pricing, slots, assignment, ai guards, access matrix, seo
+cd backend && uv run pytest -q          # 194 tests: pricing, slots, assignment, ai guards, access matrix, seo
 cd frontend && npm test && npm run lint # 16 tests: formatting, timers, emi
 ```
 
 ## Environment variables
 
-These are names only. Real values live in `backend/.env` locally, which is git-ignored, or in the Render dashboard.
+These are names only. Real values live in `backend/.env` locally, which is git-ignored, or in the Vercel project settings.
 
 | Name | Needed in prod | What it does |
 |---|---|---|
@@ -60,24 +60,58 @@ These are names only. Real values live in `backend/.env` locally, which is git-i
 | `ANTHROPIC_API_KEY` | no | Turns on the live AI buyer summary and first-reply draft. Without it, leads get a rule-based summary and a template reply, labelled "fallback" on the desk. |
 | `AI_MODEL` | no | Defaults to `claude-opus-5-5`. |
 
-## Deploy: Render + Neon
+## Deploy: Vercel + Neon (what's live)
 
-The deploy uses Render for the web service, built from the `Dockerfile`, and Neon for Postgres. Both have free tiers. Neon is used because Render's free Postgres expires after 30 days, and its free disks are wiped on every deploy.
+On Vercel, FastAPI runs as one Python function (`api/index.py` just imports `backend/app/main.py`). `vercel.json` does three things:
 
-1. **Create the database.** Make a project on [neon.tech](https://neon.tech) in AWS Singapore, the region closest to Lucknow. Copy the pooled connection string. It looks like `postgresql://user:pass@ep-xxx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`.
-2. **Create the web service.** In Render, choose **New → Blueprint** and pick this repo. Render reads `render.yaml`, which describes one Docker web service in Singapore, health-checked on `/api/health`, with `JWT_SECRET` auto-generated.
-3. **Fill in the prompted values:**
-   - `DATABASE_URL`: the Neon string from step 1.
-   - `PUBLIC_URL`: `https://<service>.onrender.com`.
-   - `DEMO_PASSWORD`: optional.
-   - `ANTHROPIC_API_KEY`: optional.
-4. **Deploy.** The container:
-   - builds the React app;
-   - installs the backend from `uv.lock`;
-   - on boot, runs `python -m app.seed --if-empty`, which seeds only an empty database, so restarts and redeploys keep real data;
-   - starts uvicorn with `--proxy-headers`, so rate limits see the real client IP rather than Render's proxy.
+- It builds the React app and copies it to `static/` without `index.html`, so Vercel's CDN serves `/assets`, `/media` and the favicon directly.
+- It rewrites every other path to the function. Pages still get their server-filled SEO head and boot data, because the function reads `frontend/dist/index.html`.
+- It pins the function to `sin1` (Singapore), the same region as the Neon database.
 
-After that, every push to `main` redeploys automatically.
+Python dependencies come from `requirements.txt` at the root. It's generated from `backend/uv.lock`, so regenerate it after changing backend dependencies:
+
+```bash
+cd backend && uv export --no-dev --no-hashes --no-emit-project --frozen -o ../requirements.txt
+```
+
+First-time setup, with the Vercel CLI:
+
+```bash
+npm i -g vercel && vercel login
+vercel project create companya-dealership
+vercel link --yes --project companya-dealership
+vercel integration add neon --name companya-db --meta region=sin1   # free plan, sets DATABASE_URL
+openssl rand -hex 32 | tr -d '\n' | vercel env add JWT_SECRET production --sensitive
+printf true | vercel env add COOKIE_SECURE production
+printf https://companya-dealership.vercel.app | vercel env add PUBLIC_URL production
+# optional: vercel env add ANTHROPIC_API_KEY production --sensitive
+```
+
+Vercel has no boot step to run the seed, so create and seed the database once from your machine. Pull only `DATABASE_URL` from the production env:
+
+```bash
+vercel env pull --environment=production .env.prod
+grep '^DATABASE_URL=' .env.prod > backend/.env && rm .env.prod
+cd backend && uv run python -m app.seed --if-empty && rm .env
+```
+
+To deploy, build the frontend locally first, because the upload includes `frontend/dist` as well as Vercel building it again. Then:
+
+```bash
+cd frontend && npm run build && cd .. && vercel deploy --prod
+```
+
+`.vercelignore` keeps `.env` files, the local SQLite database, `node_modules`, `.venv`, the docs and the brief out of the upload.
+
+### Serverless notes
+
+- **Rate limits** are stored in Postgres, in the `ratehit` table, rather than in memory, because each serverless instance has its own memory and counts kept there would never add up. The client IP comes from Vercel's `x-real-ip` header. Vercel sets that header itself and drops any value the visitor sends, and the app trusts it only when `VERCEL=1`.
+- **The AI read** still runs as a FastAPI background task. On Vercel, the function stays alive until that task finishes.
+- **No local disk:** SQLite isn't an option on Vercel, so `DATABASE_URL` must point at Postgres.
+
+## Alternative: Docker on Render
+
+The `Dockerfile` and `render.yaml` still work for a long-running container. In Render, choose New → Blueprint on this repo and fill in `DATABASE_URL` and `PUBLIC_URL` when prompted. On boot, the container runs `python -m app.seed --if-empty` and then starts uvicorn with `--proxy-headers`.
 
 ### Smoke test after a deploy
 
@@ -90,7 +124,7 @@ After that, every push to `main` redeploys automatically.
 
 ### Reset the demo data
 
-The seed wipes the database and loads it again. Run it from a Render shell, or locally with the production `DATABASE_URL` exported:
+The seed wipes the database and loads it again. Run it locally with the production `DATABASE_URL` exported, as in the first-time setup:
 
 ```bash
 cd backend && uv run python -m app.seed
@@ -98,6 +132,6 @@ cd backend && uv run python -m app.seed
 
 ## Limits worth knowing
 
-- **Rate limits** are kept in memory, per instance: 5 form posts a minute (30 an hour) and 10 login tries a minute, per IP. If the service ever runs on more than one instance, point slowapi at Redis.
+- **Rate limits** are fixed windows stored in Postgres: 5 form posts a minute (30 an hour) and 10 login tries a minute, per IP. A visitor whose network rotates between several public IPs gets a separate allowance on each one.
 - **AI calls** run in the background after the lead is saved. A buyer never waits on the model, and a slow or failed call falls back to the template.
 - **WhatsApp acknowledgements** are mocked. They show up in the lead's timeline as "sent" without leaving the server.

@@ -1,0 +1,19 @@
+# keep the upload small and never ship local secrets or the dev db
+.env
+.env.*
+**/.env
+*.db
+.git
+.claude
+**/node_modules
+**/.venv
+**/__pycache__
+.pytest_cache
+static
+docs
+samples
+submission
+companya-submission.zip
+PROBLEM-STATEMENT.md
+REQUIREMENTS.md
+PLAN.md

@@ -217,3 +217,10 @@ class LeadEvent(SQLModel, table=True):
     body: str
     actor_id: int | None = Field(default=None, foreign_key="user.id")
     at: datetime = Field(default_factory=now)
+
+
+class RateHit(SQLModel, table=True):
+    # one row per ip per time window. lives in the db so every serverless box sees the same count
+    key: str = Field(primary_key=True)
+    count: int = 0
+    expires: int = Field(index=True)

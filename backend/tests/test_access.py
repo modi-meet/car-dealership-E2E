@@ -119,3 +119,13 @@ def test_dev_secret_refused_when_live(monkeypatch):
     importlib.reload(mod)
     monkeypatch.undo()
     importlib.reload(mod)
+
+
+def test_vercel_ip_header_only_trusted_on_vercel(monkeypatch):
+    from starlette.requests import Request
+    from app import limits
+
+    req = Request({"type": "http", "headers": [(b"x-real-ip", b"9.9.9.9")], "client": ("10.0.0.1", 1)})
+    assert limits.client_ip(req) == "10.0.0.1"
+    monkeypatch.setattr(limits.settings, "vercel", True)
+    assert limits.client_ip(req) == "9.9.9.9"
