@@ -18,3 +18,7 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+
+# built from docs/TDD.html, ships in the zip
+docs/TDD.pdf
+submission/

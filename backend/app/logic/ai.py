@@ -162,7 +162,7 @@ def rule_summary(f: Facts) -> dict:
     intent = "hot" if (f.lead_type == "test_drive" or soon) else ("warm" if m.strip() else "cold")
     missing = [x for x, ok in [("budget", budget), ("timeframe", soon), ("preferred model", f.model)] if not ok]
     return {
-        "summary": (f"{f.lead_type.replace('_', ' ')} for {f.model or f.used_car or 'a car'}" + (f": “{f.message[:120]}”" if f.message else ", no message")),
+        "summary": (f"{f.lead_type.replace('_', ' ').capitalize()} for {f.model or f.used_car or 'a car'}" + (f": “{f.message[:120]}”" if f.message else ", no message")),
         "intent": intent,
         "timeframe": soon.group(0) if soon else "not stated",
         "budget": budget.group(0) if budget else "not stated",
