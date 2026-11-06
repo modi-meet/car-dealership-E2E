@@ -201,8 +201,12 @@ MESSAGES = [
 
 
 def photo(slug: str, name: str) -> str:
-    # real photos get dropped into frontend/public/media
+    # brand-free studio shots generated for the demo, live in frontend/public/media
     return f"/media/{slug}/{name}.jpg"
+
+
+def gallery(slug: str) -> list[str]:
+    return [photo(slug, "hero"), photo(slug, "g2"), "/media/shared/dash.jpg", "/media/shared/seats.jpg"]
 
 
 def run() -> None:
@@ -244,7 +248,7 @@ def run() -> None:
                 tagline_en=m["tagline_en"], tagline_hi=m["tagline_hi"],
                 description_en=m["description_en"], description_hi=m["description_hi"],
                 hero_image=photo(m["slug"], "hero"),
-                gallery=[photo(m["slug"], f"g{i}") for i in range(1, 5)],
+                gallery=gallery(m["slug"]),
             )
             s.add(cm)
             s.flush()
@@ -266,7 +270,7 @@ def run() -> None:
             s.add(UsedCar(
                 stock_id=sid, model_name=mname, variant=var, body_type=body, fuel=fuel, transmission=trans,
                 year=year, km=km, owners=owners, price=price, reg_number=reg, colour=colour, city="Lucknow",
-                showroom_id=showrooms[i % 3].id, photos=[photo(slug, f"g{j}") for j in range(1, 5)],
+                showroom_id=showrooms[i % 3].id, photos=gallery(slug),
                 inspection={"score": score, "inspected_on": "2026-10-20", "checks": checks}, status=status,
                 created_at=now() - timedelta(days=rnd.randint(1, 40)),
             ))

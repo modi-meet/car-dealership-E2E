@@ -2,8 +2,10 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
 import Layout from './components/Layout'
 import { NotFound } from './components/States'
 import { RequireRole } from './lib/auth'
+import Cars from './pages/Cars'
 import Home from './pages/Home'
 import Login from './pages/Login'
+import ModelPage from './pages/ModelPage'
 
 // temporary stand-in while the real screens get built
 function Soon({ name }: { name: string }) {
@@ -16,7 +18,8 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <Home /> },
       { path: '/login', element: <Login /> },
-      { path: '/cars', element: <Soon name="New cars" /> },
+      { path: '/cars', element: <Cars /> },
+      { path: '/cars/:slug', element: <ModelPage /> },
       { path: '/used', element: <Soon name="Used cars" /> },
       { path: '/test-drive', element: <Soon name="Test drive" /> },
       { path: '/privacy', element: <Soon name="Privacy" /> },

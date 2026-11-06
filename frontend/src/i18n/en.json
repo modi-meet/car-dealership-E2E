@@ -13,7 +13,13 @@
     "title": "Find your next car. See the real price.",
     "sub": "On-road prices with every rupee shown, certified used cars with inspection reports, and test drives you can book in a real slot.",
     "browse": "Browse new cars",
-    "used": "See used cars"
+    "used": "See used cars",
+    "featured": "Featured",
+    "seePrice": "See on-road price",
+    "lineup": "The line-up",
+    "all": "All models",
+    "usedTitle": "Certified used cars, inspected and priced upfront",
+    "usedSub": "Every car comes with a 10-point inspection report, the year, owners and kilometres — and a price that isn’t a guess."
   },
   "login": {
     "title": "Sign in",
@@ -35,5 +41,45 @@
     "notFound": "This page doesn't exist.",
     "home": "Go home",
     "loading": "Loading…"
+  },
+  "cars": {
+    "title": "New cars",
+    "sub": "Six models, every one with a real on-road price for your city. Pick a variant to see each rupee.",
+    "none": "No models are listed right now.",
+    "fromOnRoad": "On-road from",
+    "variant": "Variant",
+    "colours": "Colours",
+    "specs": "Key specs",
+    "about": "About the {{name}}",
+    "exShowroom": "Ex-showroom",
+    "bookTestDrive": "Book a test drive",
+    "testDriveShort": "Test drive",
+    "spec": {
+      "engine": "Engine",
+      "battery": "Battery",
+      "power": "Power",
+      "mileage": "Mileage",
+      "range": "Range",
+      "seats": "Seats",
+      "boot": "Boot space",
+      "safety": "Safety"
+    }
+  },
+  "price": {
+    "title": "On-road price",
+    "city": "City",
+    "onRoadIn": "On-road in {{city}}",
+    "onRequest": "Price on request",
+    "onRequestWhy": "We don’t have a current price table for {{city}}. Book a test drive and your consultant will confirm the exact figure.",
+    "validUntil": "Valid until {{date}}.",
+    "note": "Prices may change; the final price is confirmed on your booking invoice.",
+    "accessories": "Accessories",
+    "lines": {
+      "ex_showroom": "Ex-showroom price",
+      "road_tax": "Road tax",
+      "registration": "Registration & handling",
+      "insurance": "Insurance (1 yr comprehensive)",
+      "tcs": "TCS"
+    }
   }
 }
