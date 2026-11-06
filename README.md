@@ -4,6 +4,7 @@ New and certified used cars with an honest, city-wise on-road price, test-drive 
 
 **FastAPI + SQLModel** backend, **React + Vite + Tailwind** frontend, served as one app. AI (Claude) writes the buyer summary and a first-reply draft, and code checks it before anyone can send it.
 
+- Live: <https://companya-dealership.vercel.app> (admin login `admin@companya.demo` / `demo1234`)
 - Run it, deploy it, demo logins: [deployment.md](deployment.md)
 - Sample portal export for the CSV import: [samples/portal_leads.csv](samples/portal_leads.csv)
 

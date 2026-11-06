@@ -223,7 +223,7 @@ valid until = the earliest valid_until of the rules used</pre>
   <tr><td>Wrong consultant</td><td>Re-assign from the lead page; the timeline records who moved it</td><td>—</td></tr>
 </table>
 <p class="small">The Hindi prompt and template avoid verb forms that assume the consultant's gender ("मैं Ankit, Company A से" instead of "बोल रहा हूँ"). The guard checks have 13 tests covering every row above. They use a fake model, so they run offline and cost nothing.</p>
-<div class="callout warn"><b>Honest limit:</b> the guardrails are word lists and patterns, not understanding. A cleverly worded discount promise might slip past them, which is why a person always presses Send. Both live paths are wired, and their error handling is tested with fakes. The screenshots show the fallback path, because they were taken without an API key.</div>
+<div class="callout warn"><b>Honest limit:</b> the guardrails are word lists and patterns, not understanding. A cleverly worded discount promise might slip past them, which is why a person always presses Send. Both live paths are wired, and their error handling is tested with fakes. The live site runs on Gemini. One check there: for a buyer who asked for a discount, the AI read came back <i>ok</i> (hot, 0.9 confidence, variant flagged as missing), the draft left the discount out, and code filled in the price. The screenshots show the fallback path, because they were taken before a key was added.</div>
 
 <h2>6. Security and privacy</h2>
 <ul>
