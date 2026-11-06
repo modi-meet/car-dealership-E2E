@@ -1,0 +1,11 @@
+Customer Name,Mobile,Email,Car,Branch,City,Lead Source,Remarks
+Saurav Bajpai,+91 98390 41101,saurav.b@example.com,Model H,Gomti Nagar,Lucknow,CarDekho,Wants the automatic. Budget 14-15 lakh.
+Pallavi Nigam,9839041102,,Model S,Aliganj,Lucknow,CarWale,First car. Looking at CNG.
+Imran Qureshi,09839041103,,Model T,Alambagh,Lucknow,CarDekho,"7 seater for family of 6, highway use"
+Ritika Sahu,98390 41104,ritika@example.com,model-e,,Kanpur,ZigWheels,How long does home charging take?
+Ashok Verma,9839041105,,Model C,Aliganj,Lucknow,CarWale,Diesel? Drives 2000 km a month
+Neeraj Pal,98390-41106,,h,Gomti Nagar,Barabanki,CarDekho,
+Test Row,12345,,Model H,,Lucknow,CarDekho,bad phone on purpose
+Mohit Rai,9839041108,,Model Z,,Lucknow,CarWale,unknown model on purpose
+Saurav Bajpai,9839041101,,Model H,Gomti Nagar,Lucknow,CarWale,same buyer twice in one file
+Kiran Joshi,9839041110,,Model A,Hazratganj,Lucknow,ZigWheels,unknown showroom on purpose
