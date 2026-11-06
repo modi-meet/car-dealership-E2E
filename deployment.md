@@ -60,8 +60,8 @@ These are names only. Real values live in `backend/.env` locally, which is git-i
 | `ANTHROPIC_API_KEY` | no | Turns on the live AI buyer summary and first-reply draft. Without it, leads get a rule-based summary and a template reply, labelled "fallback" on the desk. |
 | `AI_MODEL` | no | Defaults to `claude-opus-5-5`. |
 | `GEMINI_API_KEY` | no | Used only when `ANTHROPIC_API_KEY` is empty. It sends the same prompt and schema to Gemini, and the same draft checks apply. |
-| `GEMINI_MODEL` | no | Defaults to `gemini-flash-latest`. |
-| `GEMINI_BACKUP_MODEL` | no | Tried once when the main model answers 503 (busy) or 504 (too slow). Defaults to `gemini-flash-lite-latest`. |
+| `GEMINI_MODEL` | no | Defaults to `gemini-flash-lite-latest`, which answers in a few seconds. On the free tier, full Flash kept timing out. |
+| `GEMINI_BACKUP_MODEL` | no | Tried once when the main model answers 503 (busy) or 504 (too slow). Defaults to `gemini-flash-latest`. |
 
 ## Deploy: Vercel + Neon (what's live)
 

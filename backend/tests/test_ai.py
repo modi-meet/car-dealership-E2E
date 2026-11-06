@@ -226,7 +226,7 @@ def test_busy_gemini_tries_the_backup_model(gemini):
 
     fake = gemini(Busy(gemini_answer(json.dumps(good()(None)))))
     assert run(facts()).status == "ok"
-    assert fake.seen["models"] == ["gemini-flash-latest", "gemini-flash-lite-latest"]
+    assert fake.seen["models"] == ["gemini-flash-lite-latest", "gemini-flash-latest"]
 
 
 def test_slow_gemini_also_tries_the_backup(gemini):

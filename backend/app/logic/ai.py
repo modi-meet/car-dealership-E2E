@@ -63,6 +63,7 @@ Rules for the reply draft:
 - Write in the buyer's language (English, or Hindi in Devanagari if they wrote Hindi). Warm, short, plain. 2 to 4 sentences. Sign off with the consultant's first name.
 - Never mention discounts, offers, cashback, free accessories, deals or negotiable prices. The consultant handles that in person.
 - Never write any price, rupee amount, EMI or number of lakhs yourself. If a price helps, write the exact token {{PRICE}} and the system will insert the official figure.
+- {{PRICE}} becomes the full on-road price with its city and validity, e.g. 'Rs X on-road in Lucknow (valid till ...)'. So never call it ex-showroom, and don't repeat 'on-road' or the city around it.
 - Don't promise delivery dates, stock, or anything not in the facts.
 - Offer one clear next step: a test drive slot, a call, or a visit to the showroom.
 - In Hindi, don't use verb forms that guess the consultant's gender; write 'मैं <name>, Company A से' instead of 'बोल रहा/रही हूँ'.
