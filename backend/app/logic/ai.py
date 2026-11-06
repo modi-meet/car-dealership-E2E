@@ -242,7 +242,9 @@ def call_claude(f: Facts) -> dict:
 def call_gemini(f: Facts) -> dict:
     if not settings.gemini_api_key:
         raise AIUnavailable("no api key configured")
-    client = genai.Client(api_key=settings.gemini_api_key, http_options=genai_types.HttpOptions(timeout=int(TIMEOUT_S * 1000)))
+    client = genai.Client(api_key=settings.gemini_api_key, http_options=genai_types.HttpOptions(
+        # the -latest aliases live on v1beta, the sdk defaults to v1
+        api_version="v1beta", timeout=int(TIMEOUT_S * 1000)))
     # gemini's schema support is a subset, so keep it to the plain shape
     schema = {k: v for k, v in SCHEMA.items() if k != "additionalProperties"}
     try:
@@ -263,6 +265,13 @@ def call_gemini(f: Facts) -> dict:
         raise AIUnavailable("can't reach the ai service") from e
     except genai_errors.APIError as e:
         log.warning("gemini call failed %s %s", e.code, getattr(e, "message", ""))
+        if e.code == 404:
+            # wrong model name, so say which ones this key can use
+            try:
+                names = [m.name for m in client.models.list() if "flash" in (m.name or "")]
+                log.warning("gemini model %s not found, try one of %s", settings.gemini_model, names[:15])
+            except Exception:  # noqa: BLE001
+                pass
         if e.code == 429:
             raise AIUnavailable("rate limited") from e
         raise AIUnavailable(f"ai service error {e.code}") from e
