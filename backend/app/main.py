@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.db import init_db
-from app.routers import auth, booking, desk, public
+from app.routers import admin, auth, booking, desk, public
 from app.settings import settings
 
 
@@ -23,6 +23,7 @@ app.include_router(auth.router)
 app.include_router(public.router)
 app.include_router(booking.router)
 app.include_router(desk.router)
+app.include_router(admin.router)
 
 
 @app.get("/api/health")
