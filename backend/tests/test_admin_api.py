@@ -1,7 +1,7 @@
 from tests.conftest import login
 
 RULE = {"fuel": "petrol", "price_from": 0, "price_to": 1_000_000, "road_tax_bp": 800, "registration_fee": 6500,
-        "valid_from": "2027-01-01", "valid_until": "2027-03-31"}
+        "valid_from": "2027-04-01", "valid_until": "2027-06-30"}
 
 
 def city_id(client, name="Lucknow"):
@@ -29,8 +29,8 @@ def test_price_change_shows_up_on_the_site(client):
 def test_overlapping_tax_rule_is_refused(client):
     login(client, "admin")
     lko = city_id(client)
-    # the seed already has lucknow petrol 0-10L for oct-dec 2026
-    clash = {**RULE, "city_id": lko, "valid_from": "2026-12-01", "valid_until": "2027-01-31"}
+    # the seed already has lucknow petrol 0-10L for oct 2026 to mar 2027
+    clash = {**RULE, "city_id": lko, "valid_from": "2027-03-01", "valid_until": "2027-04-30"}
     r = client.post("/api/admin/tax-rules", json=clash)
     assert r.status_code == 422 and "overlaps" in r.json()["detail"]
     # next quarter is fine
@@ -42,7 +42,7 @@ def test_bad_rule_values(client):
     lko = city_id(client)
     assert client.post("/api/admin/tax-rules", json={**RULE, "city_id": lko, "price_from": 5, "price_to": 1}).status_code == 422
     assert client.post("/api/admin/tax-rules", json={**RULE, "city_id": lko, "road_tax_bp": 9000}).status_code == 422
-    assert client.post("/api/admin/tax-rules", json={**RULE, "city_id": lko, "valid_from": "2027-05-01"}).status_code == 422
+    assert client.post("/api/admin/tax-rules", json={**RULE, "city_id": lko, "valid_from": "2027-07-01"}).status_code == 422
 
 
 def test_new_city_without_rules_is_price_on_request(client):

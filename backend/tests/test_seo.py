@@ -68,3 +68,9 @@ def test_boot_data_matches_the_api_and_stays_masked():
     script = seo.boot_script(used)
     assert "UP32 •• ••18" in script and "4418" not in script
     assert "</script" not in seo.boot_script([[["x"], {"s": "</script><b>"}]]).removesuffix("</script>")
+
+
+def test_head_works_for_pages(client):
+    # uptime checks and link unfurlers send head first
+    assert client.head("/cars/model-h").status_code == 200
+    assert client.head("/cars/nope").status_code == 404

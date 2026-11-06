@@ -11,7 +11,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from sqlmodel import Session
 
+from slowapi.errors import RateLimitExceeded
+
 from app import seo
+from app.limits import limiter, too_many
 from app.db import engine, init_db
 from app.routers import admin, auth, booking, desk, public
 from app.settings import settings
@@ -24,7 +27,21 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Company A dealership", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, too_many)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+@app.middleware("http")
+async def safety_headers(request: Request, call_next):
+    # cheap wins: no framing, no mime sniffing, don't leak full urls to other sites
+    res = await call_next(request)
+    res.headers.setdefault("X-Content-Type-Options", "nosniff")
+    res.headers.setdefault("X-Frame-Options", "DENY")
+    res.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if settings.cookie_secure:
+        res.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+    return res
 app.include_router(auth.router)
 app.include_router(public.router)
 app.include_router(booking.router)
@@ -74,7 +91,7 @@ def robots():
 async def spa_fallback(request: Request, exc: StarletteHTTPException):
     # api 404s stay json. any other unknown path is a react route, so hand over index.html
     path = request.url.path
-    if exc.status_code != 404 or path.startswith("/api") or request.method != "GET" or not (dist / "index.html").exists():
+    if exc.status_code != 404 or path.startswith("/api") or request.method not in ("GET", "HEAD") or not (dist / "index.html").exists():
         return await http_exception_handler(request, exc)
     file = (dist / path.lstrip("/")).resolve()
     if file.is_file() and file.is_relative_to(dist) and file.name != "index.html":

@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr, Field
 from sqlmodel import Session, select
 
 from app.auth import COOKIE, check_password, current_user, make_token
 from app.db import get_session
+from app.limits import LOGIN, limiter
 from app.models import User
 from app.settings import settings
 
@@ -28,7 +29,8 @@ def to_me(u: User) -> MeOut:
 
 
 @router.post("/login", response_model=MeOut)
-def login(body: LoginIn, response: Response, session: Session = Depends(get_session)):
+@limiter.limit(LOGIN)
+def login(request: Request, body: LoginIn, response: Response, session: Session = Depends(get_session)):
     user = session.exec(select(User).where(User.email == body.email.lower())).first()
     # same message either way so nobody can probe emails
     if not user or not user.is_active or not check_password(body.password, user.password_hash):

@@ -3,7 +3,7 @@
 import random
 from datetime import date, datetime, timedelta
 
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session, SQLModel, select
 
 from app.auth import hash_password
 from app.logic.assignment import Candidate, pick_consultant
@@ -35,7 +35,7 @@ from app.settings import settings
 # all prices, tax and insurance rates below are illustrative assumptions
 
 VALID_FROM = date(2026, 10, 1)
-VALID_UNTIL = date(2026, 12, 31)
+VALID_UNTIL = date(2027, 3, 31)  # end of the indian financial year
 
 SHOWROOMS = [
     ("Company A Gomti Nagar", "Gomti Nagar", "Vibhuti Khand, Gomti Nagar, Lucknow 226010", "0522 400 1100"),
@@ -362,5 +362,17 @@ def run() -> None:
     print("seeded ✓  logins: admin@ / ankit@ / buyer@companya.demo")
 
 
-if __name__ == "__main__":
+def run_if_empty() -> None:
+    # deploys call this on boot, so a restart never wipes real data
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as s:
+        if s.exec(select(User)).first():
+            print("db already has data, skipping seed")
+            return
     run()
+
+
+if __name__ == "__main__":
+    import sys
+
+    run_if_empty() if "--if-empty" in sys.argv else run()

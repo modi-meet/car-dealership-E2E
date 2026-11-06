@@ -8,7 +8,11 @@ import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app import seed  # noqa: E402
+from app.limits import limiter  # noqa: E402
 from app.main import app  # noqa: E402
+
+# every test comes from the same ip, the limit gets its own test
+limiter.enabled = False
 
 
 @pytest.fixture(scope="session", autouse=True)

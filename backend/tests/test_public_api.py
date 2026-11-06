@@ -19,7 +19,7 @@ def test_price_matches_worked_example(client):
     v = next(v for v in client.get("/api/models/model-h").json()["variants"] if v["stock_id"] == "NEW-H-02")
     p = client.get(f"/api/price?variant_id={v['id']}&city=Lucknow").json()
     assert p["available"] and p["total"] == 1_442_045
-    assert p["valid_until"] == "2026-12-31"
+    assert p["valid_until"] == "2027-03-31"
     assert "may change" in p["note"].lower()
 
 

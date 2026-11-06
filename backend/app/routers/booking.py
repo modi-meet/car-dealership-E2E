@@ -1,11 +1,12 @@
 from datetime import date
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select, update
 
 from app.db import get_session
+from app.limits import FORMS, limiter
 from app.logic import ai_runner
 from app.logic.leads import clean_phone, create_lead
 from app.logic.slots import free_slots, is_bookable, now_ist
@@ -86,7 +87,8 @@ class BookingIn(Contact):
 
 
 @router.post("/test-drives", status_code=201)
-def book_test_drive(body: BookingIn, bg: BackgroundTasks, session: Session = Depends(get_session)):
+@limiter.limit(FORMS)
+def book_test_drive(request: Request, body: BookingIn, bg: BackgroundTasks, session: Session = Depends(get_session)):
     demo = session.get(DemoCar, body.demo_car_id)
     if not demo or not demo.is_active:
         raise HTTPException(404, "we couldn't find that demo car")
@@ -132,7 +134,8 @@ class EnquiryIn(Contact):
 
 
 @router.post("/leads", status_code=201)
-def enquire(body: EnquiryIn, bg: BackgroundTasks, session: Session = Depends(get_session)):
+@limiter.limit(FORMS)
+def enquire(request: Request, body: EnquiryIn, bg: BackgroundTasks, session: Session = Depends(get_session)):
     if body.type == LeadType.test_drive:
         raise HTTPException(422, "use the test drive booking for that")
     model = session.exec(select(CarModel).where(CarModel.slug == body.model_slug)).first() if body.model_slug else None
@@ -169,7 +172,8 @@ class OptOutIn(BaseModel):
 
 
 @router.post("/optout")
-def opt_out(body: OptOutIn, session: Session = Depends(get_session)):
+@limiter.limit(FORMS)
+def opt_out(request: Request, body: OptOutIn, session: Session = Depends(get_session)):
     session.execute(update(Lead).where(Lead.phone == body.phone).values(opted_out=True))
     session.commit()
     # same answer whether or not we knew the number, nothing to probe

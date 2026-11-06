@@ -1,0 +1,23 @@
+# render blueprint: one docker web service. postgres comes from neon (free, doesn't expire)
+services:
+  - type: web
+    name: companya-dealership
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: PUBLIC_URL
+        sync: false
+      - key: DEMO_PASSWORD
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: claude-opus-5-5
