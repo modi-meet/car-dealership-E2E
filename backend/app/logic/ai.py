@@ -144,11 +144,12 @@ def template_draft(f: Facts) -> str:
     if f.used_car:
         car = f.used_car
     if f.lang == "hi":
-        price = f" {car} की {f.price_text} है।" if f.price_text and not f.used_car else ""
+        # no variant picked means the price is the cheapest one, say so
+        price = (f" {car} की क़ीमत {f.price_text} है।" if f.variant else f" {car} की शुरुआती क़ीमत {f.price_text} है।") if f.price_text and not f.used_car else ""
         step = f" आपकी टेस्ट ड्राइव {f.test_drive} पर बुक है।" if f.test_drive else " क्या मैं आपके लिए टेस्ट ड्राइव बुक कर दूँ?"
         # "मैं X, ... से" stays neutral, "बोल रहा/रही हूँ" would guess the consultant's gender
         return f"नमस्ते {f.first_name}, मैं {who}, Company A{f' {f.showroom}' if f.showroom else ''} से। {car} में रुचि के लिए धन्यवाद।{price}{step}"
-    price = f" The on-road price is {f.price_text}." if f.price_text and not f.used_car else ""
+    price = (f" It's {f.price_text}." if f.variant else f" Prices start at {f.price_text}.") if f.price_text and not f.used_car else ""
     step = f" Your test drive is booked for {f.test_drive}, see you then." if f.test_drive else " Would you like me to book a test drive at a time that suits you?"
     return f"Hi {f.first_name}, this is {who} from Company A{f' {f.showroom}' if f.showroom else ''}. Thanks for your interest in the {car}.{price}{step}"
 
@@ -180,7 +181,10 @@ def call_claude(f: Facts) -> dict:
         "buyer_first_name": f.first_name, "language": "Hindi" if f.lang == "hi" else "English",
         "enquiry_type": f.lead_type, "came_from": f.source, "model": f.model, "variant": f.variant,
         "used_car": f.used_car, "showroom": f.showroom, "consultant_first_name": f.consultant_first,
-        "official_price_available": bool(f.price_text), "test_drive_booked_for": f.test_drive,
+        "official_price_available": bool(f.price_text),
+        # without a variant {{PRICE}} is the cheapest variant, so say 'starts at'
+        "price_is_starting_price": bool(f.price_text) and not f.variant and not f.used_car,
+        "test_drive_booked_for": f.test_drive,
     }
     user = f"Facts:\n{json.dumps(facts, ensure_ascii=False)}\n\n<buyer_message>\n{f.message or '(no message)'}\n</buyer_message>"
     try:

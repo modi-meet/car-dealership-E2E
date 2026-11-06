@@ -46,9 +46,8 @@ def facts_for(session: Session, lead: Lead) -> ai.Facts:
         try:
             b = price_for(session, variant, lead.city or "Lucknow", None)
             when = b.valid_until.strftime("%-d %b %Y")
-            label = "from " if not lead.variant_id else ""
-            price_text = (f"{label}₹{inr(b.total)} on-road in {b.city} (valid till {when})" if lead.lang != "hi"
-                          else f"{b.city} में ऑन-रोड {label and 'शुरुआती '}₹{inr(b.total)} ({when} तक मान्य)")
+            price_text = (f"₹{inr(b.total)} on-road in {b.city} (valid till {when})" if lead.lang != "hi"
+                          else f"{b.city} में ऑन-रोड ₹{inr(b.total)} ({when} तक मान्य)")
         except PriceUnavailable:
             price_text = None
 

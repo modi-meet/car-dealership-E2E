@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import AiCard from '../components/AiCard'
 import { StatusChip, TimerBadge } from '../components/DeskBits'
 import { ErrorState, NotFound } from '../components/States'
 import { api, ApiError } from '../lib/api'
@@ -111,6 +112,8 @@ export default function LeadPage() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-8">
+          <AiCard lead={l} />
+
           {l.message && (
             <section className="card p-5">
               <p className="eyebrow">What they said</p>
