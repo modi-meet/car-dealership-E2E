@@ -36,6 +36,8 @@ PLACEHOLDER = "{{PRICE}}"
 MAX_DRAFT = 700
 LOW_CONFIDENCE = 0.6
 TIMEOUT_S = 20.0
+# gemini flash thinks before it answers and is slow when busy, so it gets longer
+GEMINI_TIMEOUT_S = 40.0
 
 SCHEMA = {
     "type": "object",
@@ -244,7 +246,7 @@ def call_gemini(f: Facts) -> dict:
         raise AIUnavailable("no api key configured")
     client = genai.Client(api_key=settings.gemini_api_key, http_options=genai_types.HttpOptions(
         # the -latest aliases live on v1beta, the sdk defaults to v1
-        api_version="v1beta", timeout=int(TIMEOUT_S * 1000)))
+        api_version="v1beta", timeout=int(GEMINI_TIMEOUT_S * 1000)))
     # gemini's schema support is a subset, so keep it to the plain shape
     schema = {k: v for k, v in SCHEMA.items() if k != "additionalProperties"}
     config = genai_types.GenerateContentConfig(
@@ -258,8 +260,8 @@ def call_gemini(f: Facts) -> dict:
         try:
             resp = client.models.generate_content(model=settings.gemini_model, contents=prompt(f), config=config)
         except genai_errors.APIError as e:
-            # busy model is common on the free tier, the lite one usually has room
-            if e.code != 503 or not settings.gemini_backup_model:
+            # busy or too slow is common on the free tier, the lite one usually has room
+            if e.code not in (503, 504) or not settings.gemini_backup_model:
                 raise
             log.warning("gemini %s busy, trying %s", settings.gemini_model, settings.gemini_backup_model)
             resp = client.models.generate_content(model=settings.gemini_backup_model, contents=prompt(f), config=config)

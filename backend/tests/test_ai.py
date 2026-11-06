@@ -229,6 +229,22 @@ def test_busy_gemini_tries_the_backup_model(gemini):
     assert fake.seen["models"] == ["gemini-flash-latest", "gemini-flash-lite-latest"]
 
 
+def test_slow_gemini_also_tries_the_backup(gemini):
+    import json
+
+    from google.genai import errors
+
+    class Slow(FakeGemini):
+        def generate_content(self, **kw):
+            self.seen.setdefault("models", []).append(kw["model"])
+            if len(self.seen["models"]) == 1:
+                raise errors.ServerError(504, {"error": {"message": "deadline expired"}})
+            return self.answer
+
+    fake = gemini(Slow(gemini_answer(json.dumps(good()(None)))))
+    assert run(facts()).status == "ok" and len(fake.seen["models"]) == 2
+
+
 def test_both_gemini_models_busy_falls_back(gemini):
     from google.genai import errors
 
