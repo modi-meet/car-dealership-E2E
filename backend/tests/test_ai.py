@@ -1,4 +1,4 @@
-import httpx
+import httpx2
 import pytest
 
 
@@ -199,7 +199,7 @@ def test_gemini_api_errors_fall_back(gemini):
 
     gemini(FakeGemini(error=errors.ClientError(429, {"error": {"message": "quota"}})))
     assert "rate limited" in run(facts()).summary["why"]
-    gemini(FakeGemini(error=httpx.ReadTimeout("slow")))
+    gemini(FakeGemini(error=httpx2.ReadTimeout("slow")))
     assert "timed out" in run(facts()).summary["why"]
 
 

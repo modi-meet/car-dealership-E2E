@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import anthropic
-import httpx
+import httpx2
 from google import genai
 from google.genai import errors as genai_errors
 from google.genai import types as genai_types
@@ -20,6 +20,17 @@ from google.genai import types as genai_types
 from app.settings import settings
 
 log = logging.getLogger("ai")
+
+# the sdks ride on httpx2, plain httpx only shows up in dev. catch whichever is around
+TIMEOUTS: tuple[type[Exception], ...] = (httpx2.TimeoutException,)
+NETWORK: tuple[type[Exception], ...] = (httpx2.TransportError,)
+try:
+    import httpx
+
+    TIMEOUTS += (httpx.TimeoutException,)
+    NETWORK += (httpx.TransportError,)
+except ImportError:
+    pass
 
 PLACEHOLDER = "{{PRICE}}"
 MAX_DRAFT = 700
@@ -246,9 +257,9 @@ def call_gemini(f: Facts) -> dict:
                 max_output_tokens=8000,
             ),
         )
-    except httpx.TimeoutException as e:
+    except TIMEOUTS as e:
         raise AIUnavailable("timed out") from e
-    except httpx.TransportError as e:
+    except NETWORK as e:
         raise AIUnavailable("can't reach the ai service") from e
     except genai_errors.APIError as e:
         log.warning("gemini call failed %s %s", e.code, getattr(e, "message", ""))
