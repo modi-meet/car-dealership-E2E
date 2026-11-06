@@ -1,3 +1,7 @@
+import httpx
+import pytest
+
+
 from app.logic.ai import AIUnavailable, Facts, check_draft, fill_price, run
 
 PRICE = "₹14,42,045 on-road in Lucknow (valid till 31 Dec 2026)"
@@ -112,3 +116,97 @@ def test_templates_pass_our_own_rules():
 
 def test_no_price_rule_means_no_number():
     assert fill_price("It's {{PRICE}}.", None, "en") == "It's the full on-road price breakup."
+
+
+# gemini, with a fake client so no network
+
+
+class FakeGemini:
+    # stands in for genai.Client, hands back whatever the test set up
+    def __init__(self, answer=None, error=None):
+        self.answer, self.error, self.seen = answer, error, {}
+
+    def __call__(self, **kw):
+        self.seen["client"] = kw
+        return self
+
+    @property
+    def models(self):
+        return self
+
+    def generate_content(self, **kw):
+        self.seen["call"] = kw
+        if self.error:
+            raise self.error
+        return self.answer
+
+
+def gemini_answer(text, reason="STOP", blocked=None):
+    from types import SimpleNamespace as NS
+
+    from google.genai import types
+
+    return NS(text=text, prompt_feedback=NS(block_reason=blocked) if blocked else None,
+              candidates=[NS(finish_reason=types.FinishReason[reason])])
+
+
+@pytest.fixture
+def gemini(monkeypatch):
+    from app.logic import ai
+
+    monkeypatch.setattr(ai.settings, "anthropic_api_key", None)
+    monkeypatch.setattr(ai.settings, "gemini_api_key", "test-key")
+
+    def use(fake):
+        monkeypatch.setattr(ai.genai, "Client", fake)
+        return fake
+
+    return use
+
+
+def test_gemini_good_answer_goes_through_the_same_checks(gemini):
+    import json
+
+    fake = gemini(FakeGemini(gemini_answer(json.dumps(good()(None)))))
+    r = run(facts())
+    assert r.status == "ok" and PRICE in r.draft
+    cfg = fake.seen["call"]["config"]
+    assert cfg.response_mime_type == "application/json" and "additionalProperties" not in cfg.response_json_schema
+    assert "<buyer_message>" in fake.seen["call"]["contents"]
+
+
+def test_gemini_draft_with_discount_still_rejected(gemini):
+    import json
+
+    gemini(FakeGemini(gemini_answer(json.dumps(good(draft="Hi Rahul, there's a festive discount on now! – Ankit")(None)))))
+    assert run(facts()).status == "needs_review"
+
+
+@pytest.mark.parametrize("answer,why", [
+    (lambda: gemini_answer("{}", reason="MAX_TOKENS"), "cut off"),
+    (lambda: gemini_answer("", reason="SAFETY"), "declined"),
+    (lambda: gemini_answer("", blocked="SAFETY"), "declined"),
+    (lambda: gemini_answer("not json"), "valid json"),
+])
+def test_gemini_bad_answers_fall_back(gemini, answer, why):
+    gemini(FakeGemini(answer()))
+    r = run(facts())
+    assert r.status == "fallback" and why in r.summary["why"]
+
+
+def test_gemini_api_errors_fall_back(gemini):
+    from google.genai import errors
+
+    gemini(FakeGemini(error=errors.ClientError(429, {"error": {"message": "quota"}})))
+    assert "rate limited" in run(facts()).summary["why"]
+    gemini(FakeGemini(error=httpx.ReadTimeout("slow")))
+    assert "timed out" in run(facts()).summary["why"]
+
+
+def test_claude_key_wins_when_both_are_set(gemini, monkeypatch):
+    from app.logic import ai
+
+    monkeypatch.setattr(ai.settings, "anthropic_api_key", "a-key")
+    monkeypatch.setattr(ai, "call_claude", lambda f: good()(f))
+    gemini(FakeGemini(error=AssertionError("gemini shouldn't be called")))
+    assert ai.call_ai(facts())["intent"] == "hot"

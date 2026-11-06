@@ -56,7 +56,7 @@
   <div><b>GitHub</b><a href="https://github.com/modi-meet/car-dealership-E2E">https://github.com/modi-meet/car-dealership-E2E</a></div>
   <div><b>Live app</b><span><a href="https://companya-dealership.vercel.app">https://companya-dealership.vercel.app</a><br><span class="small">Vercel (Singapore) with Neon Postgres. The first request after an idle spell can take a few seconds.</span></span></div>
   <div><b>Demo logins</b><span>admin@companya.demo · ankit@companya.demo (consultant) · buyer@companya.demo. The password is <code>demo1234</code>; the full list is in <code>deployment.md</code>.</span></div>
-  <div><b>Stack</b><span>FastAPI · SQLModel · Postgres (Neon) · React 19 · Vite · Tailwind v4 · Claude API</span></div>
+  <div><b>Stack</b><span>FastAPI · SQLModel · Postgres (Neon) · React 19 · Vite · Tailwind v4 · Claude or Gemini API</span></div>
   <div><b>Author</b><span>modi-meet · November 2026</span></div>
 </div>
 
@@ -101,7 +101,7 @@
     <text x="607" y="48" text-anchor="middle" font-weight="600">Postgres</text>
     <text x="607" y="65" text-anchor="middle" fill="#4a5058" font-size="10">Neon (SQLite locally)</text>
     <rect x="540" y="120" width="134" height="56" rx="10" fill="#f5f6f7" stroke="#e3e5e8"/>
-    <text x="607" y="144" text-anchor="middle" font-weight="600">Claude API</text>
+    <text x="607" y="144" text-anchor="middle" font-weight="600">Claude / Gemini</text>
     <text x="607" y="161" text-anchor="middle" fill="#4a5058" font-size="10">optional, has a fallback</text>
   </g>
   <g stroke="#7a8088" stroke-width="1.3" fill="none" marker-end="url(#a)">
@@ -208,7 +208,7 @@ valid until = the earliest valid_until of the rules used</pre>
   </g>
   <g stroke="#7a8088" stroke-width="1.3" fill="none" marker-end="url(#b)"><path d="M114 58 H138"/><path d="M252 58 H276"/><path d="M390 58 H414"/><path d="M528 58 H552"/></g>
 </svg>
-<p><b>The call.</b> The model is <code>claude-opus-5-5</code>, set by <code>AI_MODEL</code>, at low effort, with structured output against a JSON schema. The schema covers summary, intent (hot, warm or cold), timeframe, budget, preferred model, missing info, a 0–1 confidence, a one-line "why" and the draft. The buyer's text is wrapped in <code>&lt;buyer_message&gt;</code> tags, and the system prompt says it is untrusted data whose instructions must be ignored. The timeout is 20 s with one retry.</p>
+<p><b>The call.</b> It goes to Claude (<code>claude-opus-5-5</code>, set by <code>AI_MODEL</code>, at low effort) when <code>ANTHROPIC_API_KEY</code> is set, otherwise to Gemini (<code>gemini-flash-latest</code>, set by <code>GEMINI_MODEL</code>) when <code>GEMINI_API_KEY</code> is set. Both use the same prompt, structured output against the same JSON schema, and the same checks afterwards. The schema covers summary, intent (hot, warm or cold), timeframe, budget, preferred model, missing info, a 0–1 confidence, a one-line "why" and the draft. The buyer's text is wrapped in <code>&lt;buyer_message&gt;</code> tags, and the system prompt says it is untrusted data whose instructions must be ignored. The timeout is 20 s with one retry.</p>
 <p><b>The model never writes a number.</b> The prompt forbids prices, rupee amounts, EMIs and lakhs. Where a price helps, the model writes <code>{{PRICE}}</code>, and code replaces it with the official figure from <code>on_road_price()</code>. If no live price rule exists, the placeholder becomes "the full on-road price breakup" rather than a number. This meets the brief's "on-road prices always come from the admin table" by construction, not just by asking nicely.</p>
 <h3>When it is wrong or unsure, mapped to the brief</h3>
 <table>
@@ -223,7 +223,7 @@ valid until = the earliest valid_until of the rules used</pre>
   <tr><td>Wrong consultant</td><td>Re-assign from the lead page; the timeline records who moved it</td><td>—</td></tr>
 </table>
 <p class="small">The Hindi prompt and template avoid verb forms that assume the consultant's gender ("मैं Ankit, Company A से" instead of "बोल रहा हूँ"). The guard checks have 13 tests covering every row above. They use a fake model, so they run offline and cost nothing.</p>
-<div class="callout warn"><b>Honest limit:</b> the guardrails are word lists and patterns, not understanding. A cleverly worded discount promise might slip past them, which is why a person always presses Send. The live Claude path is wired and its error handling is tested with fakes. The screenshots show the fallback path because the repo has no API key; adding <code>ANTHROPIC_API_KEY</code> on Render turns the live path on.</div>
+<div class="callout warn"><b>Honest limit:</b> the guardrails are word lists and patterns, not understanding. A cleverly worded discount promise might slip past them, which is why a person always presses Send. Both live paths are wired, and their error handling is tested with fakes. The screenshots show the fallback path, because they were taken without an API key.</div>
 
 <h2>6. Security and privacy</h2>
 <ul>
@@ -321,7 +321,7 @@ valid until = the earliest valid_until of the rules used</pre>
 </div>
 
 <h2>9. Tests</h2>
-<p>There are <b>194 backend tests</b> (pytest) and <b>16 frontend tests</b> (vitest). They concentrate on the logic that costs money if it's wrong:</p>
+<p>There are <b>202 backend tests</b> (pytest) and <b>16 frontend tests</b> (vitest). They concentrate on the logic that costs money if it's wrong:</p>
 <table>
   <tr><th>Area</th><th>What is pinned down</th></tr>
   <tr><td>Pricing</td><td>Breakup sums to the total; band edges at exactly ₹10L; the TCS threshold; a missing or expired rule means "on request"; validity is the earliest date; EV exempt; the worked example to the rupee</td></tr>

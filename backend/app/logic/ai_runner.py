@@ -68,7 +68,7 @@ def facts_for(session: Session, lead: Lead) -> ai.Facts:
     )
 
 
-def apply(session: Session, lead: Lead, caller=ai.call_claude, actor_id: int | None = None) -> ai.Result | None:
+def apply(session: Session, lead: Lead, caller=ai.call_ai, actor_id: int | None = None) -> ai.Result | None:
     """caller commits"""
     if lead.opted_out:
         # they withdrew consent, so no profiling and no drafts

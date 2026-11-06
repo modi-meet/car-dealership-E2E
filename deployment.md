@@ -42,7 +42,7 @@ To try it the way production runs it, serve the built app from FastAPI. Build it
 ### Tests
 
 ```bash
-cd backend && uv run pytest -q          # 194 tests: pricing, slots, assignment, ai guards, access matrix, seo
+cd backend && uv run pytest -q          # 202 tests: pricing, slots, assignment, ai guards, access matrix, seo
 cd frontend && npm test && npm run lint # 16 tests: formatting, timers, emi
 ```
 
@@ -59,6 +59,8 @@ These are names only. Real values live in `backend/.env` locally, which is git-i
 | `DEMO_PASSWORD` | no | The password for the seeded accounts. |
 | `ANTHROPIC_API_KEY` | no | Turns on the live AI buyer summary and first-reply draft. Without it, leads get a rule-based summary and a template reply, labelled "fallback" on the desk. |
 | `AI_MODEL` | no | Defaults to `claude-opus-5-5`. |
+| `GEMINI_API_KEY` | no | Used only when `ANTHROPIC_API_KEY` is empty. It sends the same prompt and schema to Gemini, and the same draft checks apply. |
+| `GEMINI_MODEL` | no | Defaults to `gemini-flash-latest`. |
 
 ## Deploy: Vercel + Neon (what's live)
 
@@ -84,7 +86,8 @@ vercel integration add neon --name companya-db --meta region=sin1   # free plan,
 openssl rand -hex 32 | tr -d '\n' | vercel env add JWT_SECRET production --sensitive
 printf true | vercel env add COOKIE_SECURE production
 printf https://companya-dealership.vercel.app | vercel env add PUBLIC_URL production
-# optional: vercel env add ANTHROPIC_API_KEY production --sensitive
+# optional, either one: vercel env add ANTHROPIC_API_KEY production --sensitive
+#                      vercel env add GEMINI_API_KEY production --sensitive
 ```
 
 Vercel has no boot step to run the seed, so create and seed the database once from your machine. Pull only `DATABASE_URL` from the production env:
@@ -95,7 +98,7 @@ grep '^DATABASE_URL=' .env.prod > backend/.env && rm .env.prod
 cd backend && uv run python -m app.seed --if-empty && rm .env
 ```
 
-To deploy, build the frontend locally first, because the upload includes `frontend/dist` as well as Vercel building it again. Then:
+The project is connected to the GitHub repo, so every push to `main` deploys to production, and Vercel builds the frontend itself. To deploy from your machine instead, without pushing:
 
 ```bash
 cd frontend && npm run build && cd .. && vercel deploy --prod

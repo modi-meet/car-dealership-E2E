@@ -3,6 +3,7 @@ import os
 # point at a throwaway db before the app imports settings
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 os.environ.pop("ANTHROPIC_API_KEY", None)
+os.environ.pop("GEMINI_API_KEY", None)
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

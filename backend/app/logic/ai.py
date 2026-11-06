@@ -12,6 +12,10 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import anthropic
+import httpx
+from google import genai
+from google.genai import errors as genai_errors
+from google.genai import types as genai_types
 
 from app.settings import settings
 
@@ -173,10 +177,8 @@ def rule_summary(f: Facts) -> dict:
     }
 
 
-def call_claude(f: Facts) -> dict:
-    if not settings.anthropic_api_key:
-        raise AIUnavailable("no api key configured")
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key, timeout=TIMEOUT_S, max_retries=1)
+def prompt(f: Facts) -> str:
+    # same facts and message for whichever model we call
     facts = {
         "buyer_first_name": f.first_name, "language": "Hindi" if f.lang == "hi" else "English",
         "enquiry_type": f.lead_type, "came_from": f.source, "model": f.model, "variant": f.variant,
@@ -186,7 +188,14 @@ def call_claude(f: Facts) -> dict:
         "price_is_starting_price": bool(f.price_text) and not f.variant and not f.used_car,
         "test_drive_booked_for": f.test_drive,
     }
-    user = f"Facts:\n{json.dumps(facts, ensure_ascii=False)}\n\n<buyer_message>\n{f.message or '(no message)'}\n</buyer_message>"
+    return f"Facts:\n{json.dumps(facts, ensure_ascii=False)}\n\n<buyer_message>\n{f.message or '(no message)'}\n</buyer_message>"
+
+
+def call_claude(f: Facts) -> dict:
+    if not settings.anthropic_api_key:
+        raise AIUnavailable("no api key configured")
+    client = anthropic.Anthropic(api_key=settings.anthropic_api_key, timeout=TIMEOUT_S, max_retries=1)
+    user = prompt(f)
     try:
         resp = client.beta.messages.create(
             model=settings.ai_model,
@@ -219,7 +228,57 @@ def call_claude(f: Facts) -> dict:
         raise AIUnavailable("answer wasn't valid json") from e
 
 
-def run(f: Facts, caller: Callable[[Facts], dict] = call_claude) -> Result:
+def call_gemini(f: Facts) -> dict:
+    if not settings.gemini_api_key:
+        raise AIUnavailable("no api key configured")
+    client = genai.Client(api_key=settings.gemini_api_key, http_options=genai_types.HttpOptions(timeout=int(TIMEOUT_S * 1000)))
+    # gemini's schema support is a subset, so keep it to the plain shape
+    schema = {k: v for k, v in SCHEMA.items() if k != "additionalProperties"}
+    try:
+        resp = client.models.generate_content(
+            model=settings.gemini_model,
+            contents=prompt(f),
+            config=genai_types.GenerateContentConfig(
+                system_instruction=SYSTEM,
+                response_mime_type="application/json",
+                response_json_schema=schema,
+                # thinking tokens count against this too, so leave room
+                max_output_tokens=8000,
+            ),
+        )
+    except httpx.TimeoutException as e:
+        raise AIUnavailable("timed out") from e
+    except httpx.TransportError as e:
+        raise AIUnavailable("can't reach the ai service") from e
+    except genai_errors.APIError as e:
+        log.warning("gemini call failed %s %s", e.code, getattr(e, "message", ""))
+        if e.code == 429:
+            raise AIUnavailable("rate limited") from e
+        raise AIUnavailable(f"ai service error {e.code}") from e
+
+    if resp.prompt_feedback and resp.prompt_feedback.block_reason:
+        raise AIUnavailable("model declined")
+    reason = resp.candidates[0].finish_reason if resp.candidates else None
+    if reason == genai_types.FinishReason.MAX_TOKENS:
+        raise AIUnavailable("answer was cut off")
+    if reason not in (None, genai_types.FinishReason.STOP):
+        raise AIUnavailable("model declined")
+    try:
+        return json.loads(resp.text or "")
+    except json.JSONDecodeError as e:
+        raise AIUnavailable("answer wasn't valid json") from e
+
+
+def call_ai(f: Facts) -> dict:
+    # claude if its key is set, else gemini, else the template path
+    if settings.anthropic_api_key:
+        return call_claude(f)
+    if settings.gemini_api_key:
+        return call_gemini(f)
+    raise AIUnavailable("no api key configured")
+
+
+def run(f: Facts, caller: Callable[[Facts], dict] = call_ai) -> Result:
     try:
         out = caller(f)
     except AIUnavailable as e:

@@ -19,5 +19,7 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false
       - key: AI_MODEL
         value: claude-opus-5-5

@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     anthropic_api_key: str | None = None
     ai_model: str = "claude-opus-5-5"
+    # used only when there's no anthropic key
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-flash-latest"
     demo_password: str = "demo1234"
     frontend_dist: str = "../frontend/dist"
     # used for canonical links and the sitemap
