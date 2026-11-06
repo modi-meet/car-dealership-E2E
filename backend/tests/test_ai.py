@@ -210,3 +210,27 @@ def test_claude_key_wins_when_both_are_set(gemini, monkeypatch):
     monkeypatch.setattr(ai, "call_claude", lambda f: good()(f))
     gemini(FakeGemini(error=AssertionError("gemini shouldn't be called")))
     assert ai.call_ai(facts())["intent"] == "hot"
+
+
+def test_busy_gemini_tries_the_backup_model(gemini):
+    import json
+
+    from google.genai import errors
+
+    class Busy(FakeGemini):
+        def generate_content(self, **kw):
+            self.seen.setdefault("models", []).append(kw["model"])
+            if len(self.seen["models"]) == 1:
+                raise errors.ServerError(503, {"error": {"message": "high demand"}})
+            return self.answer
+
+    fake = gemini(Busy(gemini_answer(json.dumps(good()(None)))))
+    assert run(facts()).status == "ok"
+    assert fake.seen["models"] == ["gemini-flash-latest", "gemini-flash-lite-latest"]
+
+
+def test_both_gemini_models_busy_falls_back(gemini):
+    from google.genai import errors
+
+    gemini(FakeGemini(error=errors.ServerError(503, {"error": {"message": "high demand"}})))
+    assert "error 503" in run(facts()).summary["why"]

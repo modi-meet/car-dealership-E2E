@@ -42,7 +42,7 @@ To try it the way production runs it, serve the built app from FastAPI. Build it
 ### Tests
 
 ```bash
-cd backend && uv run pytest -q          # 202 tests: pricing, slots, assignment, ai guards, access matrix, seo
+cd backend && uv run pytest -q          # 204 tests: pricing, slots, assignment, ai guards, access matrix, seo
 cd frontend && npm test && npm run lint # 16 tests: formatting, timers, emi
 ```
 
@@ -61,6 +61,7 @@ These are names only. Real values live in `backend/.env` locally, which is git-i
 | `AI_MODEL` | no | Defaults to `claude-opus-5-5`. |
 | `GEMINI_API_KEY` | no | Used only when `ANTHROPIC_API_KEY` is empty. It sends the same prompt and schema to Gemini, and the same draft checks apply. |
 | `GEMINI_MODEL` | no | Defaults to `gemini-flash-latest`. |
+| `GEMINI_BACKUP_MODEL` | no | Tried once when the main model answers 503 (busy). Defaults to `gemini-flash-lite-latest`. |
 
 ## Deploy: Vercel + Neon (what's live)
 

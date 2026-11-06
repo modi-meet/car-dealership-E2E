@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # used only when there's no anthropic key
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-flash-latest"
+    # tried once when the main one says it's overloaded
+    gemini_backup_model: str = "gemini-flash-lite-latest"
     demo_password: str = "demo1234"
     frontend_dist: str = "../frontend/dist"
     # used for canonical links and the sitemap

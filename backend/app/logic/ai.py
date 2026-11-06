@@ -247,18 +247,22 @@ def call_gemini(f: Facts) -> dict:
         api_version="v1beta", timeout=int(TIMEOUT_S * 1000)))
     # gemini's schema support is a subset, so keep it to the plain shape
     schema = {k: v for k, v in SCHEMA.items() if k != "additionalProperties"}
+    config = genai_types.GenerateContentConfig(
+        system_instruction=SYSTEM,
+        response_mime_type="application/json",
+        response_json_schema=schema,
+        # thinking tokens count against this too, so leave room
+        max_output_tokens=8000,
+    )
     try:
-        resp = client.models.generate_content(
-            model=settings.gemini_model,
-            contents=prompt(f),
-            config=genai_types.GenerateContentConfig(
-                system_instruction=SYSTEM,
-                response_mime_type="application/json",
-                response_json_schema=schema,
-                # thinking tokens count against this too, so leave room
-                max_output_tokens=8000,
-            ),
-        )
+        try:
+            resp = client.models.generate_content(model=settings.gemini_model, contents=prompt(f), config=config)
+        except genai_errors.APIError as e:
+            # busy model is common on the free tier, the lite one usually has room
+            if e.code != 503 or not settings.gemini_backup_model:
+                raise
+            log.warning("gemini %s busy, trying %s", settings.gemini_model, settings.gemini_backup_model)
+            resp = client.models.generate_content(model=settings.gemini_backup_model, contents=prompt(f), config=config)
     except TIMEOUTS as e:
         raise AIUnavailable("timed out") from e
     except NETWORK as e:
