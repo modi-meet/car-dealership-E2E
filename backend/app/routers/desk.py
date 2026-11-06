@@ -2,13 +2,15 @@ import csv
 import io
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlmodel import Session, or_, select
 
 from app.auth import require
 from app.db import get_session
+from app.logic import ai_runner
+from app.logic.ai import check_draft
 from app.logic.importer import CsvRejected, parse_csv
 from app.logic.leads import CLOSED, create_lead
 from app.logic.slots import IST, now_ist
@@ -179,7 +181,7 @@ def update_lead(lead_id: int, body: LeadPatch, user: User = Depends(staff), sess
 
 
 @router.post("/leads/import")
-async def import_leads(file: UploadFile = File(...), user: User = Depends(staff), session: Session = Depends(get_session)):
+async def import_leads(bg: BackgroundTasks, file: UploadFile = File(...), user: User = Depends(staff), session: Session = Depends(get_session)):
     raw = await file.read(1_000_001)
     lookup_models = {}
     for m in session.exec(select(CarModel)):
@@ -212,6 +214,8 @@ async def import_leads(file: UploadFile = File(...), user: User = Depends(staff)
         session.add(LeadEvent(lead_id=lead.id, kind="note", body=f"imported from {r.portal} csv, consent taken by the portal"))
         created.append({"line": r.line, "name": r.name, "lead_id": lead.id})
     session.commit()
+    for c in created:
+        bg.add_task(ai_runner.run_in_background, c["lead_id"])
     return {"created": created, "duplicates": duplicates, "errors": parsed.errors}
 
 
@@ -236,3 +240,42 @@ def export_csv(day: str | None = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$"), _:
                     users[x.assigned_to].name if x.assigned_to in users else "", resp, x.opted_out])
     return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
                              headers={"Content-Disposition": f'attachment; filename="leads-{d}.csv"'})
+
+
+# ai read + draft, and the (mock) whatsapp send
+
+
+@router.post("/leads/{lead_id}/ai")
+def regenerate_ai(lead_id: int, user: User = Depends(staff), session: Session = Depends(get_session)):
+    lead = get_visible(session, user, lead_id)
+    if lead.opted_out:
+        raise HTTPException(409, "this buyer opted out, no AI or messages")
+    ai_runner.apply(session, lead, actor_id=user.id)
+    session.commit()
+    return lead_detail(lead.id, user, session)
+
+
+class SendIn(BaseModel):
+    body: str = Field(min_length=2, max_length=1000)
+
+
+@router.post("/leads/{lead_id}/send")
+def send_message(lead_id: int, msg: SendIn, user: User = Depends(staff), session: Session = Depends(get_session)):
+    lead = get_visible(session, user, lead_id)
+    if lead.opted_out:
+        raise HTTPException(409, "this buyer opted out, we can't message them")
+    text = msg.body.strip()
+    # same rule for people as for the ai: no discounts in writing
+    if any(p == "mentions a discount or offer" for p in check_draft(text, lead.lang)):
+        raise HTTPException(422, "messages can't mention discounts or offers, talk about those in person")
+    if "{{" in text:
+        raise HTTPException(422, "there's a placeholder left in the message")
+    session.add(LeadEvent(lead_id=lead.id, kind="message_sent", body=f"WhatsApp (mock) by {user.name}: {text}", actor_id=user.id))
+    if lead.first_response_at is None:
+        lead.first_response_at = now()
+    if lead.status == LeadStatus.new:
+        lead.status = LeadStatus.contacted
+        session.add(LeadEvent(lead_id=lead.id, kind="status", body="status → contacted", actor_id=user.id))
+    session.add(lead)
+    session.commit()
+    return lead_detail(lead.id, user, session)

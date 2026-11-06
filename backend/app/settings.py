@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     jwt_ttl_hours: int = 12
     cookie_secure: bool = False
     anthropic_api_key: str | None = None
-    ai_model: str = "claude-haiku-5-5"
+    ai_model: str = "claude-opus-5-5"
     demo_password: str = "demo1234"
     frontend_dist: str = "../frontend/dist"
 

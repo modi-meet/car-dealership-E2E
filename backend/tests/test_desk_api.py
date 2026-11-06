@@ -101,3 +101,48 @@ def test_export_is_admin_only_and_hides_opted_out_phones(client):
     login(client, "admin")
     r = client.get("/api/desk/export.csv")
     assert r.status_code == 200 and r.text.startswith("lead_id,created_ist")
+
+
+# ai + send
+
+
+def a_waiting_lead(client):
+    return client.get("/api/leads?view=waiting").json()[0]["id"]
+
+
+def test_regenerate_ai_without_key_gives_safe_template(client):
+    login(client, "admin")
+    lid = a_waiting_lead(client)
+    d = client.post(f"/api/leads/{lid}/ai").json()
+    assert d["ai_status"] == "fallback" and d["ai_draft"]
+    assert d["ai_summary"]["why"].startswith("keyword rules")
+    assert d["events"][-1]["kind"] == "ai"
+
+
+def test_send_logs_message_and_stops_clock(client):
+    login(client, "admin")
+    lid = a_waiting_lead(client)
+    d = client.post(f"/api/leads/{lid}/send", json={"body": "Hi, this is Meera from Company A. When can you come in?"}).json()
+    assert d["first_response_at"] and d["status"] == "contacted"
+    assert d["events"][-2]["kind"] == "message_sent"
+
+
+def test_send_blocks_discounts_and_leftover_placeholders(client):
+    login(client, "admin")
+    lid = a_waiting_lead(client)
+    r = client.post(f"/api/leads/{lid}/send", json={"body": "We can give you a 10% discount this week!"})
+    assert r.status_code == 422 and "discount" in r.json()["detail"]
+    r = client.post(f"/api/leads/{lid}/send", json={"body": "The price is {{PRICE}}"})
+    assert r.status_code == 422
+
+
+def test_opted_out_lead_gets_no_ai_and_no_messages(client):
+    login(client, "admin")
+    lid = a_waiting_lead(client)
+    with Session(engine) as s:
+        lead = s.get(Lead, lid)
+        lead.opted_out = True
+        s.add(lead)
+        s.commit()
+    assert client.post(f"/api/leads/{lid}/ai").status_code == 409
+    assert client.post(f"/api/leads/{lid}/send", json={"body": "hello there"}).status_code == 409

@@ -64,7 +64,9 @@ def test_booking_happy_path_assigns_a_consultant(client):
         lead = s.exec(select(Lead).order_by(Lead.id.desc())).first()
         assert lead.phone == "9839012345" and lead.assigned_to
         kinds = [e.kind for e in s.exec(select(LeadEvent).where(LeadEvent.lead_id == lead.id))]
-        assert kinds == ["created", "assigned", "message_sent"]
+        # testclient runs background tasks inline, so the ai (fallback here, no key) has run too
+        assert kinds == ["created", "assigned", "message_sent", "ai"]
+        assert lead.ai_status == "fallback" and lead.ai_draft.startswith("Hi Test")
 
 
 def test_double_booking_is_409(client):

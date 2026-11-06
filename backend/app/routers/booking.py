@@ -1,11 +1,12 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select, update
 
 from app.db import get_session
+from app.logic import ai_runner
 from app.logic.leads import clean_phone, create_lead
 from app.logic.slots import free_slots, is_bookable, now_ist
 from app.models import CarModel, DemoCar, Lead, LeadSource, LeadType, Showroom, TestDrive, UsedCar, User, Variant, now
@@ -85,7 +86,7 @@ class BookingIn(Contact):
 
 
 @router.post("/test-drives", status_code=201)
-def book_test_drive(body: BookingIn, session: Session = Depends(get_session)):
+def book_test_drive(body: BookingIn, bg: BackgroundTasks, session: Session = Depends(get_session)):
     demo = session.get(DemoCar, body.demo_car_id)
     if not demo or not demo.is_active:
         raise HTTPException(404, "we couldn't find that demo car")
@@ -108,6 +109,8 @@ def book_test_drive(body: BookingIn, session: Session = Depends(get_session)):
         # two people hit the same slot at once, the unique key picked a winner
         session.rollback()
         raise HTTPException(409, "that slot was just taken, please pick another")
+    # ai read runs after we've answered the buyer, they never wait on it
+    bg.add_task(ai_runner.run_in_background, lead.id)
 
     showroom = session.get(Showroom, demo.showroom_id)
     model = session.get(CarModel, variant.model_id)
@@ -129,7 +132,7 @@ class EnquiryIn(Contact):
 
 
 @router.post("/leads", status_code=201)
-def enquire(body: EnquiryIn, session: Session = Depends(get_session)):
+def enquire(body: EnquiryIn, bg: BackgroundTasks, session: Session = Depends(get_session)):
     if body.type == LeadType.test_drive:
         raise HTTPException(422, "use the test drive booking for that")
     model = session.exec(select(CarModel).where(CarModel.slug == body.model_slug)).first() if body.model_slug else None
@@ -146,6 +149,7 @@ def enquire(body: EnquiryIn, session: Session = Depends(get_session)):
                 city=body.city, message=body.message, consent=True, consent_at=now())
     create_lead(session, lead)
     session.commit()
+    bg.add_task(ai_runner.run_in_background, lead.id)
     return {"ref": f"EN-{lead.id:05d}", "consultant": first_name(session, lead.assigned_to)}
 
 
