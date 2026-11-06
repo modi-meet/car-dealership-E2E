@@ -1,12 +1,10 @@
+import { lazy, Suspense, type ReactNode } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import Layout from './components/Layout'
 import { NotFound } from './components/States'
-import { RequireRole } from './lib/auth'
+import { RequireRole, type Role } from './lib/auth'
 import Cars from './pages/Cars'
-import Desk from './pages/Desk'
-import DeskImport from './pages/DeskImport'
 import Home from './pages/Home'
-import LeadPage from './pages/LeadPage'
 import Login from './pages/Login'
 import ModelPage from './pages/ModelPage'
 import Privacy from './pages/Privacy'
@@ -14,10 +12,21 @@ import TestDrive from './pages/TestDrive'
 import UsedDetail from './pages/UsedDetail'
 import UsedList from './pages/UsedList'
 
-// temporary stand-in while the real screens get built
-function Soon({ name }: { name: string }) {
-  return <div className="wrap py-32 text-center text-ink-3">{name} is on its way.</div>
+// staff screens load on demand, buyers on 4g never download them
+const Desk = lazy(() => import('./pages/Desk'))
+const LeadPage = lazy(() => import('./pages/LeadPage'))
+const DeskImport = lazy(() => import('./pages/DeskImport'))
+const Admin = lazy(() => import('./pages/admin/Admin'))
+
+function Staff({ roles, children }: { roles: Role[]; children: ReactNode }) {
+  return (
+    <RequireRole roles={roles}>
+      <Suspense fallback={<div className="wrap pt-10"><div className="skeleton h-10 w-56" /></div>}>{children}</Suspense>
+    </RequireRole>
+  )
 }
+
+const DESK: Role[] = ['consultant', 'admin']
 
 const router = createBrowserRouter([
   {
@@ -31,19 +40,10 @@ const router = createBrowserRouter([
       { path: '/used/:stockId', element: <UsedDetail /> },
       { path: '/test-drive', element: <TestDrive /> },
       { path: '/privacy', element: <Privacy /> },
-      ...[
-        { path: '/desk', element: <Desk /> },
-        { path: '/desk/leads/:id', element: <LeadPage /> },
-        { path: '/desk/import', element: <DeskImport /> },
-      ].map((r) => ({ ...r, element: <RequireRole roles={['consultant', 'admin']}>{r.element}</RequireRole> })),
-      {
-        path: '/admin',
-        element: (
-          <RequireRole roles={['admin']}>
-            <Soon name="Admin" />
-          </RequireRole>
-        ),
-      },
+      { path: '/desk', element: <Staff roles={DESK}><Desk /></Staff> },
+      { path: '/desk/leads/:id', element: <Staff roles={DESK}><LeadPage /></Staff> },
+      { path: '/desk/import', element: <Staff roles={DESK}><DeskImport /></Staff> },
+      { path: '/admin', element: <Staff roles={['admin']}><Admin /></Staff> },
       { path: '*', element: <NotFound /> },
     ],
   },
