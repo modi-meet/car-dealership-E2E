@@ -32,7 +32,7 @@ function Card({ m }: { m: ModelCard }) {
         {m.from_on_road ? (
           <>
             <span className="text-ink-3">{t('cars.fromOnRoad')} </span>
-            <span className="font-medium">₹{lakh(m.from_on_road)}</span>
+            <span className="font-medium">₹{lakh(m.from_on_road, i18n.language)}</span>
           </>
         ) : (
           <span className="text-ink-3">{t('price.onRequest')}</span>

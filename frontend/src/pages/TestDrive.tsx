@@ -6,7 +6,7 @@ import CarImage from '../components/CarImage'
 import ContactFields, { contactReady, emptyContact } from '../components/ContactFields'
 import { ErrorState } from '../components/States'
 import { api, ApiError } from '../lib/api'
-import { dayLabel, istDay, slotLabel } from '../lib/format'
+import { dayLabel, gearbox, istDay, slotLabel } from '../lib/format'
 import type { Booking, DemoCar, Slot } from '../lib/types'
 import { usePageTitle } from '../lib/usePageTitle'
 
@@ -165,7 +165,7 @@ export default function TestDrive() {
                       <span className="min-w-0">
                         <span className="block text-[15px] font-medium">{d.locality}</span>
                         <span className="block truncate text-[13px] text-ink-2">
-                          {d.variant} · {t(`used.opt.${d.fuel}`, d.fuel)}
+                          {d.variant} · {t(`used.opt.${d.fuel}`, d.fuel)} · {gearbox(d.transmission, i18n.language)}
                         </span>
                         <span className="block text-[12px] text-ink-3">{d.colour}</span>
                       </span>

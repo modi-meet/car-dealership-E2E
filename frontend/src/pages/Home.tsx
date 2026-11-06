@@ -52,9 +52,14 @@ export default function Home() {
             <h2 className="text-[24px] font-semibold tracking-tight">{t('home.usedTitle')}</h2>
             <p className="mt-2 max-w-xl text-[15px] text-ink-2">{t('home.usedSub')}</p>
           </div>
-          <Link to="/used" className="btn-primary justify-self-start">
-            {t('home.used')}
-          </Link>
+          <div className="flex flex-wrap gap-3 justify-self-start">
+            <Link to="/used" className="btn-primary">
+              {t('home.used')}
+            </Link>
+            <Link to="/used#trade-in" className="btn-quiet">
+              {t('trade.cta')}
+            </Link>
+          </div>
         </div>
       </section>
     </>

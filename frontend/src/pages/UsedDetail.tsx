@@ -3,10 +3,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import CarImage from '../components/CarImage'
+import EmiCalculator from '../components/EmiCalculator'
 import EnquiryForm from '../components/EnquiryForm'
 import { ErrorState, NotFound } from '../components/States'
 import { api, ApiError } from '../lib/api'
-import { dateShort, km, lakh, ordinal, rupees } from '../lib/format'
+import { dateShort, gearbox, km, lakh, ownerLabel, rupees } from '../lib/format'
 import type { UsedDetail as Detail } from '../lib/types'
 import { usePageTitle } from '../lib/usePageTitle'
 
@@ -16,7 +17,7 @@ export default function UsedDetail() {
   const [photo, setPhoto] = useState(0)
   const q = useQuery({ queryKey: ['used-car', stockId], queryFn: () => api.get<Detail>(`/used/${stockId}`) })
   const c = q.data
-  usePageTitle(c ? `${c.year} ${c.model_name} ${c.variant}, used` : null)
+  usePageTitle(c ? t('used.docTitle', { car: `${c.year} ${c.model_name} ${c.variant}` }) : null)
 
   if (q.error instanceof ApiError && q.error.status === 404) return <NotFound />
   if (q.error) return <div className="wrap py-24"><ErrorState message={q.error.message} onRetry={() => q.refetch()} /></div>
@@ -34,10 +35,10 @@ export default function UsedDetail() {
 
   const facts = [
     [t('used.fact.year'), c.year],
-    [t('used.fact.km'), km(c.km)],
-    [t('used.fact.owners'), t('used.owner', { n: ordinal(c.owners) })],
+    [t('used.fact.km'), km(c.km, i18n.language)],
+    [t('used.fact.owners'), ownerLabel(c.owners, i18n.language)],
     [t('used.fact.fuel'), t(`used.opt.${c.fuel}`)],
-    [t('used.fact.gearbox'), c.transmission],
+    [t('used.fact.gearbox'), gearbox(c.transmission, i18n.language)],
     [t('used.fact.colour'), c.colour],
     [t('used.fact.reg'), <span key="reg" className="font-mono text-[14px]">{c.reg_masked}</span>],
     [t('used.fact.at'), c.showroom ?? c.city],
@@ -108,8 +109,8 @@ export default function UsedDetail() {
               {c.inspection.checks.map((x) => (
                 <li key={x.item} className="flex items-start justify-between gap-4 px-4 py-3 text-[14px]">
                   <span>
-                    {x.item}
-                    {x.note && <span className="block text-[13px] text-ink-3">{x.note}</span>}
+                    {t(`used.check.${x.item}`, x.item)}
+                    {x.note && <span className="block text-[13px] text-ink-3">{t(`used.checkNote.${x.note}`, x.note)}</span>}
                   </span>
                   {x.status === 'ok' ? (
                     <span className="shrink-0 rounded-full bg-ok-soft px-2.5 py-0.5 text-[12px] font-medium text-ok">{t('used.ok')}</span>
@@ -130,6 +131,7 @@ export default function UsedDetail() {
             <p className="mt-3 text-[12px] leading-relaxed text-ink-3">{t('used.priceNote')}</p>
             {c.status === 'booked' && <p className="mt-4 rounded-xl bg-mist px-3.5 py-2.5 text-[14px] text-ink-2">{t('used.bookedNote')}</p>}
           </div>
+          {c.status === 'available' && <EmiCalculator price={c.price} />}
           <div id="enquire">
             <EnquiryForm title={c.status === 'booked' ? t('used.notifyMe') : t('used.enquire')} usedStockId={c.stock_id} />
           </div>
@@ -142,7 +144,7 @@ export default function UsedDetail() {
             <p className="text-[12px] text-ink-3">
               {c.year} {c.model_name} {c.variant}
             </p>
-            <p className="text-[18px] font-semibold">₹{lakh(c.price)}</p>
+            <p className="text-[18px] font-semibold">₹{lakh(c.price, i18n.language)}</p>
           </div>
           <a href="#enquire" className="btn-accent">
             {t('used.enquireShort')}

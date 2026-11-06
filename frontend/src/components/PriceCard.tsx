@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { api } from '../lib/api'
-import { dateShort, rupees } from '../lib/format'
+import { dateShort, priceDetail, rupees } from '../lib/format'
 import type { Accessory, Price, Variant } from '../lib/types'
 import { ErrorState } from './States'
 
@@ -85,7 +85,9 @@ export default function PriceCard({ slug, variant, city, cities, accIds, onCity,
               <div key={l.key} className="flex items-start justify-between gap-4 py-2.5">
                 <dt>
                   <span className={l.key === 'ex_showroom' ? 'font-medium' : ''}>{label(l.key, l.label)}</span>
-                  {l.detail && l.key !== 'ex_showroom' && <span className="block text-[12px] text-ink-3">{l.detail}</span>}
+                  {l.key !== 'ex_showroom' && priceDetail(l.key, l.detail, i18n.language) && (
+                    <span className="block text-[12px] text-ink-3">{priceDetail(l.key, l.detail, i18n.language)}</span>
+                  )}
                 </dt>
                 <dd className="shrink-0 tabular-nums">{rupees(l.amount)}</dd>
               </div>

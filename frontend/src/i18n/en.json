@@ -64,7 +64,8 @@
       "boot": "Boot space",
       "safety": "Safety"
     },
-    "question": "Questions about the {{name}}? We’ll call you back."
+    "question": "Questions about the {{name}}? We’ll call you back.",
+    "docTitle": "{{name}} on-road price"
   },
   "price": {
     "title": "On-road price",
@@ -92,7 +93,8 @@
     "phoneBad": "Enter a 10-digit Indian mobile number.",
     "consent": "I agree to Company A contacting me about this request by call, SMS or WhatsApp, and to my details being used as described in the",
     "privacy": "privacy notice",
-    "consentNeeded": "Please tick the box so we’re allowed to contact you."
+    "consentNeeded": "Please tick the box so we’re allowed to contact you.",
+    "end": "."
   },
   "enquiry": {
     "thanks": "Thanks, we’ve got it.",
@@ -163,7 +165,8 @@
     "notifyMe": "Tell me if it comes back",
     "enquire": "Ask about this car",
     "enquireShort": "Enquire",
-    "photoNote": "Photos are representative studio shots of this model."
+    "photoNote": "Photos are representative studio shots of this model.",
+    "docTitle": "{{car}}, certified used"
   },
   "td": {
     "title": "Book a test drive",
@@ -203,5 +206,31 @@
     "optSub": "Enter the mobile number you gave us.",
     "optButton": "Opt out",
     "done": "Done. We won’t contact this number again about past requests."
+  },
+  "emi": {
+    "title": "EMI estimate",
+    "monthly": "Monthly instalment",
+    "mo": "mo",
+    "down": "Down payment",
+    "tenure": "Loan tenure",
+    "yrs": "yr",
+    "rate": "Interest rate (p.a.)",
+    "loan": "Loan amount",
+    "interest": "Total interest",
+    "note": "Indicative only. Your bank sets the final rate and EMI; we can introduce you to our finance partners."
+  },
+  "trade": {
+    "title": "Have a car to exchange?",
+    "sub": "Tell us about it and our used-car team will call with a fair valuation. No obligation.",
+    "car": "Your car (make and model)",
+    "carPh": "e.g. Swift VXi",
+    "year": "Year",
+    "km": "Kilometres",
+    "anything": "Condition, service history, anything else",
+    "carNeeded": "Tell us the car and its year.",
+    "send": "Get a valuation",
+    "willCall": "{{name}} from our used-car team will call you.",
+    "teamWillCall": "Our used-car team will call you.",
+    "cta": "Exchange your car"
   }
 }

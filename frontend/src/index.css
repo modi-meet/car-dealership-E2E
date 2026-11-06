@@ -2,7 +2,9 @@
 
 /* one accent, greys do the rest */
 @theme {
-  --font-sans: 'Inter', 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
+  /* system fonts: roboto on android (most buyers), sf on iphone, segoe on windows.
+     nothing to download, and android already ships noto devanagari for hindi */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari', 'Helvetica Neue', Arial, sans-serif;
 
   --color-ink: #111317;
   --color-ink-2: #4b5058;
@@ -32,7 +34,6 @@
   }
   body {
     @apply bg-paper text-ink font-sans;
-    font-feature-settings: 'cv11', 'ss01';
   }
   :lang(hi) body,
   html[lang='hi'] body {

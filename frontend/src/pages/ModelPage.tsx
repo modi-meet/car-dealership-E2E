@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router'
 import CarImage from '../components/CarImage'
+import EmiCalculator from '../components/EmiCalculator'
 import EnquiryForm from '../components/EnquiryForm'
 import PriceCard, { usePrice } from '../components/PriceCard'
 import { ErrorState, NotFound } from '../components/States'
 import { api, ApiError } from '../lib/api'
-import { lakh, rupees } from '../lib/format'
+import { gearbox, lakh, rupees } from '../lib/format'
 import type { ModelDetail, Variant } from '../lib/types'
 import { usePageTitle } from '../lib/usePageTitle'
 
@@ -38,7 +39,7 @@ function Gallery({ images, name }: { images: string[]; name: string }) {
 }
 
 function VariantPicker({ variants, value, onChange }: { variants: Variant[]; value: Variant; onChange: (v: Variant) => void }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <fieldset>
       <legend className="text-[15px] font-medium">{t('cars.variant')}</legend>
@@ -55,10 +56,10 @@ function VariantPicker({ variants, value, onChange }: { variants: Variant[]; val
             >
               <span className="block text-[15px] font-medium">{v.name}</span>
               <span className="block text-[13px] text-ink-2">
-                {t(`used.opt.${v.fuel}`, v.fuel)} · {v.transmission}
+                {t(`used.opt.${v.fuel}`, v.fuel)} · {gearbox(v.transmission, i18n.language)}
               </span>
               <span className="mt-1 block text-[13px] text-ink-3">
-                {t('cars.exShowroom')} ₹{lakh(v.ex_showroom)}
+                {t('cars.exShowroom')} ₹{lakh(v.ex_showroom, i18n.language)}
               </span>
             </button>
           )
@@ -75,7 +76,7 @@ export default function ModelPage() {
 
   const model = useQuery({ queryKey: ['model', slug], queryFn: () => api.get<ModelDetail>(`/models/${slug}`) })
   const cities = useQuery({ queryKey: ['cities'], queryFn: () => api.get<string[]>('/cities') })
-  usePageTitle(model.data ? `${model.data.name} on-road price` : null)
+  usePageTitle(model.data ? t('cars.docTitle', { name: model.data.name }) : null)
 
   // variant + city live in the url so a consultant can share the exact quote
   const m = model.data
@@ -165,7 +166,7 @@ export default function ModelPage() {
             </div>
           </div>
 
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <PriceCard
               slug={m.slug}
               variant={variant}
@@ -175,6 +176,8 @@ export default function ModelPage() {
               onCity={(c) => set('city', c)}
               onAcc={(ids) => set('acc', ids.join(','))}
             />
+            {/* emi follows the on-road figure the buyer is looking at */}
+            {sticky.data?.available && sticky.data.total ? <EmiCalculator price={sticky.data.total} /> : null}
           </aside>
         </div>
       </div>

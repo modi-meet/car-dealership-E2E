@@ -200,7 +200,7 @@ export default function PricesTab() {
   const t = q.data!
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
       <div className="space-y-10">
         <section>
           <h2 className="text-[17px] font-medium">Road tax and registration, by city</h2>

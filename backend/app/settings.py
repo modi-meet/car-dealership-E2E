@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     ai_model: str = "claude-opus-5-5"
     demo_password: str = "demo1234"
     frontend_dist: str = "../frontend/dist"
+    # used for canonical links and the sitemap
+    public_url: str = "http://localhost:8000"
 
 
 settings = Settings()

@@ -1,10 +1,12 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import CarImage from '../components/CarImage'
+import TradeInForm from '../components/TradeInForm'
 import { EmptyState, ErrorState } from '../components/States'
 import { api } from '../lib/api'
-import { km, lakh, ordinal } from '../lib/format'
+import { km, lakh, ownerLabel } from '../lib/format'
 import type { UsedCard } from '../lib/types'
 import { usePageTitle } from '../lib/usePageTitle'
 
@@ -21,8 +23,8 @@ type Key = keyof typeof FILTERS
 function Pill({ k, value, onChange }: { k: Key; value: string; onChange: (v: string) => void }) {
   // sort always has a value, so only real filters get the filled look
   const active = k !== 'sort' && !!value
-  const { t } = useTranslation()
-  const label = (o: string) => (k === 'max_price' ? t('used.under', { amount: lakh(Number(o)) }) : t(`used.opt.${o}`, o))
+  const { t, i18n } = useTranslation()
+  const label = (o: string) => (k === 'max_price' ? t('used.under', { amount: lakh(Number(o), i18n.language) }) : t(`used.opt.${o}`, o))
   return (
     <label className="relative shrink-0">
       <span className="sr-only">{t(`used.f.${k}`)}</span>
@@ -46,7 +48,7 @@ function Pill({ k, value, onChange }: { k: Key; value: string; onChange: (v: str
 }
 
 export function UsedTile({ c }: { c: UsedCard }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <Link to={`/used/${c.stock_id}`} className="group block">
       <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-mist">
@@ -64,11 +66,11 @@ export function UsedTile({ c }: { c: UsedCard }) {
         <h3 className="text-[17px] font-semibold tracking-tight">
           {c.year} {c.model_name} {c.variant}
         </h3>
-        <span className="shrink-0 text-[17px] font-semibold">₹{lakh(c.price)}</span>
+        <span className="shrink-0 text-[17px] font-semibold">₹{lakh(c.price, i18n.language)}</span>
       </div>
       <p className="mt-1 text-[14px] text-ink-2">
-        {km(c.km)} · {t(`used.opt.${c.fuel}`)} · {c.transmission === 'Manual' ? t('used.opt.manual') : t('used.opt.automatic')} ·{' '}
-        {t('used.owner', { n: ordinal(c.owners) })}
+        {km(c.km, i18n.language)} · {t(`used.opt.${c.fuel}`)} · {c.transmission === 'Manual' ? t('used.opt.manual') : t('used.opt.automatic')} ·{' '}
+        {ownerLabel(c.owners, i18n.language)}
       </p>
       <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-ok">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
@@ -91,6 +93,13 @@ export default function UsedList() {
     queryFn: () => api.get<UsedCard[]>(`/used${qs ? `?${qs}` : ''}`),
     placeholderData: keepPreviousData,
   })
+
+  // the form sits below the grid, so jump to it once the cars are in
+  const { hash } = useLocation()
+  const ready = !!q.data
+  useEffect(() => {
+    if (hash === '#trade-in' && ready) document.getElementById('trade-in')?.scrollIntoView()
+  }, [hash, ready])
 
   const set = (k: Key, v: string) =>
     setParams(
@@ -157,6 +166,10 @@ export default function UsedList() {
             </div>
           </>
         )}
+      </div>
+
+      <div id="trade-in" className="mt-24 max-w-3xl scroll-mt-24">
+        <TradeInForm />
       </div>
     </div>
   )

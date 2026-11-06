@@ -76,7 +76,7 @@ export default function ContactFields({ value, onChange, messageLabel, showError
           <Link to="/privacy" className="underline underline-offset-2 hover:text-ink" target="_blank">
             {t('contact.privacy')}
           </Link>
-          .
+          {t('contact.end')}
         </span>
       </label>
       {showErrors && !value.consent && <p className="-mt-2 text-[13px] text-bad">{t('contact.consentNeeded')}</p>}
