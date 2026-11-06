@@ -6,6 +6,10 @@ import Cars from './pages/Cars'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import ModelPage from './pages/ModelPage'
+import Privacy from './pages/Privacy'
+import TestDrive from './pages/TestDrive'
+import UsedDetail from './pages/UsedDetail'
+import UsedList from './pages/UsedList'
 
 // temporary stand-in while the real screens get built
 function Soon({ name }: { name: string }) {
@@ -20,9 +24,10 @@ const router = createBrowserRouter([
       { path: '/login', element: <Login /> },
       { path: '/cars', element: <Cars /> },
       { path: '/cars/:slug', element: <ModelPage /> },
-      { path: '/used', element: <Soon name="Used cars" /> },
-      { path: '/test-drive', element: <Soon name="Test drive" /> },
-      { path: '/privacy', element: <Soon name="Privacy" /> },
+      { path: '/used', element: <UsedList /> },
+      { path: '/used/:stockId', element: <UsedDetail /> },
+      { path: '/test-drive', element: <TestDrive /> },
+      { path: '/privacy', element: <Privacy /> },
       {
         path: '/desk',
         element: (

@@ -63,7 +63,8 @@
       "seats": "Seats",
       "boot": "Boot space",
       "safety": "Safety"
-    }
+    },
+    "question": "Questions about the {{name}}? We’ll call you back."
   },
   "price": {
     "title": "On-road price",
@@ -81,5 +82,126 @@
       "insurance": "Insurance (1 yr comprehensive)",
       "tcs": "TCS"
     }
+  },
+  "contact": {
+    "name": "Your name",
+    "phone": "Mobile number",
+    "message": "Message",
+    "optional": "optional",
+    "nameNeeded": "Please tell us your name.",
+    "phoneBad": "Enter a 10-digit Indian mobile number.",
+    "consent": "I agree to Company A contacting me about this request by call, SMS or WhatsApp, and to my details being used as described in the",
+    "privacy": "privacy notice",
+    "consentNeeded": "Please tick the box so we’re allowed to contact you."
+  },
+  "enquiry": {
+    "thanks": "Thanks, we’ve got it.",
+    "willCall": "{{name}} will call you shortly.",
+    "teamWillCall": "Our team will call you shortly.",
+    "ref": "Reference",
+    "send": "Request a call back",
+    "sending": "Sending…"
+  },
+  "used": {
+    "title": "Certified used cars",
+    "sub": "Inspected on a 10-point checklist, priced by our used-car manager, and shown with year, owners and kilometres.",
+    "f": {
+      "fuel": "Fuel",
+      "body": "Body type",
+      "transmission": "Gearbox",
+      "max_price": "Budget",
+      "sort": "Sort"
+    },
+    "opt": {
+      "petrol": "Petrol",
+      "diesel": "Diesel",
+      "cng": "CNG",
+      "electric": "Electric",
+      "manual": "Manual",
+      "automatic": "Automatic",
+      "SUV": "SUV",
+      "Sedan": "Sedan",
+      "Compact sedan": "Compact sedan",
+      "Hatchback": "Hatchback",
+      "MPV": "MPV",
+      "Electric SUV": "Electric SUV",
+      "newest": "Newest first",
+      "price_asc": "Price: low to high",
+      "price_desc": "Price: high to low",
+      "km_asc": "Fewest km",
+      "hybrid": "Hybrid"
+    },
+    "under": "Under ₹{{amount}}",
+    "clear": "Clear filters",
+    "booked": "Booked",
+    "owner": "{{n}} owner",
+    "inspected": "{{score}}/100 inspection",
+    "noneTitle": "No cars match those filters",
+    "noneBody": "Try a wider budget or a different fuel. New stock arrives every week.",
+    "count_one": "{{count}} car",
+    "count_other": "{{count}} cars",
+    "certified": "Certified used",
+    "fact": {
+      "year": "Year",
+      "km": "Kilometres",
+      "owners": "Owners",
+      "fuel": "Fuel",
+      "gearbox": "Gearbox",
+      "colour": "Colour",
+      "reg": "Registration",
+      "at": "At"
+    },
+    "facts": "The details",
+    "report": "Inspection report",
+    "inspectedOn": "Inspected on {{date}}",
+    "ok": "OK",
+    "attention": "Noted",
+    "flaggedNote": "{{count}} item noted. It’s reflected in the price and we’ll walk you through it.",
+    "price": "Price",
+    "priceNote": "Set by our used-car manager after inspection. Includes RC transfer. Insurance transfer extra.",
+    "bookedNote": "Someone has booked this car. Leave your number and we’ll call you if it comes back, or with a similar one.",
+    "notifyMe": "Tell me if it comes back",
+    "enquire": "Ask about this car",
+    "enquireShort": "Enquire",
+    "photoNote": "Photos are representative studio shots of this model."
+  },
+  "td": {
+    "title": "Book a test drive",
+    "sub": "Pick a car and a showroom, then a free slot. No call needed — we’ll confirm on WhatsApp.",
+    "pickCar": "Car and showroom",
+    "pickTime": "Day and time",
+    "yourDetails": "Your details",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "taken": "Already booked",
+    "tooSoon": "Too soon to get the car ready",
+    "noneLeft": "No free slots this day. Try the next one.",
+    "anything": "Anything we should know?",
+    "confirm": "Confirm booking",
+    "booking": "Booking…",
+    "confirmed": "You’re booked in.",
+    "consultant": "{{name}} will be your consultant and will call to confirm.",
+    "team": "Our team will call to confirm.",
+    "car": "Car",
+    "when": "When",
+    "where": "Where",
+    "ref": "Reference",
+    "bring": "Bring your driving licence. Need to change it? Call {{phone}}.",
+    "calendar": "Add to calendar",
+    "keepBrowsing": "Keep browsing"
+  },
+  "privacy": {
+    "title": "Privacy & opt-out",
+    "intro": "Your details are personal data under India’s Digital Personal Data Protection Act, 2023. Here’s what we do with them.",
+    "points": [
+      "We only collect what we need to answer your request: name, mobile number, and anything you choose to tell us.",
+      "We use it to call or message you about that request. We don’t sell it or share it with other dealers.",
+      "Our consultants see your details only for leads assigned to them or their showroom.",
+      "You can withdraw consent any time below. We’ll stop calls and messages for that number."
+    ],
+    "optTitle": "Stop contacting me",
+    "optSub": "Enter the mobile number you gave us.",
+    "optButton": "Opt out",
+    "done": "Done. We won’t contact this number again about past requests."
   }
 }

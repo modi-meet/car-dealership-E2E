@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router'
 import CarImage from '../components/CarImage'
+import EnquiryForm from '../components/EnquiryForm'
 import PriceCard, { usePrice } from '../components/PriceCard'
 import { ErrorState, NotFound } from '../components/States'
 import { api, ApiError } from '../lib/api'
@@ -54,7 +55,7 @@ function VariantPicker({ variants, value, onChange }: { variants: Variant[]; val
             >
               <span className="block text-[15px] font-medium">{v.name}</span>
               <span className="block text-[13px] text-ink-2">
-                <span className="capitalize">{v.fuel}</span> · {v.transmission}
+                {t(`used.opt.${v.fuel}`, v.fuel)} · {v.transmission}
               </span>
               <span className="mt-1 block text-[13px] text-ink-3">
                 {t('cars.exShowroom')} ₹{lakh(v.ex_showroom)}
@@ -158,6 +159,10 @@ export default function ModelPage() {
               <h2 className="text-[15px] font-medium">{t('cars.about', { name: m.name })}</h2>
               <p className="mt-3 text-[16px] leading-relaxed text-ink-2">{hi ? m.description_hi : m.description_en}</p>
             </section>
+
+            <div className="max-w-2xl">
+              <EnquiryForm title={t('cars.question', { name: m.name })} modelSlug={m.slug} variantId={variant.id} />
+            </div>
           </div>
 
           <aside className="lg:sticky lg:top-24 lg:self-start">
