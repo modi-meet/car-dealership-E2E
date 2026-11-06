@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+/* one accent, greys do the rest */
+@theme {
+  --font-sans: 'Inter', 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #111317;
+  --color-ink-2: #4b5058;
+  --color-ink-3: #80868f;
+  --color-line: #e6e8eb;
+  --color-mist: #f6f7f8;
+  --color-paper: #ffffff;
+
+  --color-accent: #1a56db;
+  --color-accent-ink: #1442a8;
+  --color-accent-soft: #eef3fd;
+
+  --color-ok: #1e7f3c;
+  --color-ok-soft: #e9f5ed;
+  --color-warn: #a15c00;
+  --color-warn-soft: #fdf3e3;
+  --color-bad: #b3261e;
+  --color-bad-soft: #fcebea;
+
+  --radius-card: 14px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-paper text-ink font-sans;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  :lang(hi) body,
+  html[lang='hi'] body {
+    line-height: 1.6;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+  ::selection {
+    @apply bg-accent-soft;
+  }
+}
+
+/* small set of reusable pieces */
+@utility wrap {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+@utility btn {
+  @apply inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-[15px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-ink text-paper hover:bg-black;
+}
+@utility btn-accent {
+  @apply btn bg-accent text-paper hover:bg-accent-ink;
+}
+@utility btn-quiet {
+  @apply btn border border-line bg-paper text-ink hover:bg-mist;
+}
+@utility field {
+  @apply h-11 w-full rounded-xl border border-line bg-paper px-3.5 text-[15px] text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none;
+}
+@utility label {
+  @apply mb-1.5 block text-[13px] font-medium text-ink-2;
+}
+@utility card {
+  @apply rounded-[var(--radius-card)] border border-line bg-paper;
+}
+@utility eyebrow {
+  @apply text-[12px] font-medium tracking-[0.08em] text-ink-3 uppercase;
+}
+@utility skeleton {
+  @apply animate-pulse rounded-lg bg-mist;
+}

@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "newCars": "New cars",
+    "used": "Certified used",
+    "testDrive": "Test drive",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "desk": "Lead desk",
+    "admin": "Admin"
+  },
+  "home": {
+    "eyebrow": "Authorised Brand X dealer · Lucknow",
+    "title": "Find your next car. See the real price.",
+    "sub": "On-road prices with every rupee shown, certified used cars with inspection reports, and test drives you can book in a real slot.",
+    "browse": "Browse new cars",
+    "used": "See used cars"
+  },
+  "login": {
+    "title": "Sign in",
+    "sub": "For Company A staff and registered buyers.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "working": "Signing in…",
+    "demo": "Demo accounts"
+  },
+  "footer": {
+    "showrooms": "Showrooms",
+    "privacy": "Privacy & opt-out",
+    "note": "Prices are indicative and may change. Brand X is a placeholder brand name."
+  },
+  "common": {
+    "retry": "Try again",
+    "back": "Back",
+    "notFound": "This page doesn't exist.",
+    "home": "Go home",
+    "loading": "Loading…"
+  }
+}
